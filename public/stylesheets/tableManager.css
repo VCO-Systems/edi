@@ -1,0 +1,230 @@
+div.dbCanvas {
+   
+   z-index: 2 ;
+}
+
+div.dbCanvas {
+   bottom: 0px ;
+   cursor: default ;
+   left: 0px ;
+   list-style-type: none ;
+   margin: 0px 0px 0px 0px ;
+   padding: 0px 0px 0px 0px ;
+   border: 1px solid #333333;
+   background: #f9f9f9 url('../images/bg-dots.png') repeat;
+   background-size: 20px 20px;
+   height: 500px;
+   
+   position: relative;
+}
+
+
+div.dbCanvas div.dbRenderer {
+   background-color: #F0F0F0 ;
+   border: 1px solid #CCCCCC ;
+   border-radius: 5px 5px 5px 5px ;
+   font-weight: normal ;
+   min-height: 50px ;
+   position: absolute;
+   width: 13em;
+}
+
+/**
+ *    The controls in the header of each table control
+ */
+
+   .dbRendererHeader {
+      background-color: #75b1d9;  /* #a2a2a2; */
+      border-radius: 5px 5px 0px 0px;
+      min-height: 1em;
+      height: 24px;
+      line-height: 1.5em;
+   }
+
+   .dbRenderer .dbControls {
+      float: right;
+      margin-right: 7px;
+   }
+   
+   #frmAddField {
+      font-size: .8em;
+   }
+   
+   div.dbCanvas div.dbRenderer .dbRendererTitle {
+      
+      
+   }
+   
+   div.dbRendererHeader img.dbRendererDragHandle {
+      max-width: 25px;
+      display: inline;
+      cursor: move;
+   }
+   
+   div.dbRendererHeader div.dbRendererTitle {
+      display: inline;
+   } 
+
+div.dbRenderer .slaveBody {
+   height: 100%;
+   vertical-align: middle;
+   border-bottom: 1px solid #A3A3A3;
+   
+}
+
+div.dbRenderer div.dbField {
+   padding-left: 0;
+   border-bottom: 1px solid #A3A3A3;
+}
+
+.dbField-gutter,
+.dbField-gutter-left,
+.dbField-gutter-right {
+   width: 8px;
+   background: #A3A3A3;   /* #838383; */
+   height: 20px;
+   display: inline-block;
+   cursor: pointer ;
+}
+.dbField-gutter-left {
+   margin-right: 8px;
+   position: relative;
+   float: left;
+}
+.dbField-gutter-right {
+   float: right;
+   position: relative;
+}
+
+/* Styles for the dropdown using dropit **/
+   .menu ul { display: none; } /* Hide before plugin loads */
+   .menu ul.dropit-submenu {
+       background-color: #fff;
+       border: 1px solid #b2b2b2;
+       padding: 6px 0;
+       margin: 3px 0 0 1px;
+       -webkit-border-radius: 3px;
+          -moz-border-radius: 3px;
+               border-radius: 3px;
+       -webkit-box-shadow: 0px 1px 3px rgba(0,0,0,0.15);
+          -moz-box-shadow: 0px 1px 3px rgba(0,0,0,0.15);
+               box-shadow: 0px 1px 3px rgba(0,0,0,0.15);
+   }          
+   .menu ul.dropit-submenu a {
+       display: block;
+       font-size: 14px;
+       line-height: 25px;
+       color: #7a868e;
+       padding: 0 18px;
+   }
+   .menu ul.dropit-submenu a:hover {
+       background: #248fc1;
+       color: #fff;
+       text-decoration: none;
+   }
+
+
+div.dbRenderer div.dbfield .allowedDrop {
+   border: 1px solid #ff0000;
+}
+
+
+
+
+/* Dropdown menu styling */
+#dropdown-menu-for-tables {
+   font-size: .75em;
+   color: #000000;
+}
+
+ .dropdown-divider {
+   font-size: 1px;
+   border-top: solid 1px #E5E5E5;
+   padding: 0;
+   margin: 5px 0;
+}
+
+
+.editable-container {
+   z-index: 10000;
+}
+
+.fieldTitle {
+   display: inline;
+}
+
+/*  Override the x-editable style that highlights
+ *  a value after it's been changed by the popup.
+ */
+
+ .dbCanvas .editable-unsaved {
+    font-weight: normal;
+ }
+ 
+/*  Override a bootstrap style that's making it hard to 
+ *  see table/field names.
+ */
+
+.dbCanvas a {
+   color: #000;
+}
+.tip-yellowsimple {
+   z-index:1000;
+   text-align:left;
+   border:1px solid #c7bf93;
+   border-radius:4px;
+   -moz-border-radius:4px;
+   -webkit-border-radius:4px;
+   padding:6px 8px;
+   min-width:50px;
+   max-width:300px;
+   color:#000;
+   background-color:#fff9c9;
+   /**
+    * - If you set a background-image, border/padding/background-color will be ingnored.
+    *   You can set any padding to .tip-inner instead if you need.
+    * - If you want a tiled background-image and border/padding for the tip,
+    *   set the background-image to .tip-inner instead.
+    */
+}
+.tip-yellowsimple .tip-inner {
+   font:12px/16px arial,helvetica,sans-serif;
+}
+
+/* Configure an arrow image - the script will automatically position it on the correct side of the tip */
+.tip-yellowsimple .tip-arrow-top {
+   margin-top:-6px;
+   margin-left:-5px; /* approx. half the width to center it */
+   top:0;
+   left:50%;
+   width:9px;
+   height:6px;
+   background:url(tip-yellowsimple_arrows.gif) no-repeat;
+}
+.tip-yellowsimple .tip-arrow-right {
+   margin-top:-4px; /* approx. half the height to center it */
+   margin-left:0;
+   top:50%;
+   left:100%;
+   width:6px;
+   height:9px;
+   background:url(tip-yellowsimple_arrows.gif) no-repeat -9px 0;
+}
+.tip-yellowsimple .tip-arrow-bottom {
+   margin-top:0;
+   margin-left:-5px; /* approx. half the width to center it */
+   top:100%;
+   left:50%;
+   width:9px;
+   height:6px;
+   background:url(tip-yellowsimple_arrows.gif) no-repeat -18px 0;
+}
+.tip-yellowsimple .tip-arrow-left {
+   margin-top:-4px; /* approx. half the height to center it */
+   margin-left:-6px;
+   top:50%;
+   left:0;
+   width:6px;
+   height:9px;
+   background:url(tip-yellowsimple_arrows.gif) no-repeat -27px 0;
+}
