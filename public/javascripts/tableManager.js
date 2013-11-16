@@ -48,7 +48,7 @@ var tableManager =  function(){
       $( "#frmAddField" ).dialog({
             autoOpen: false,
             height: 225,
-            width: 225,
+            width: 260,
             modal: true,
             draggable: false,
             buttons: {
