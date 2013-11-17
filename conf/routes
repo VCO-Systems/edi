@@ -11,3 +11,4 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 # Web Services
 GET     /mappings/get           controllers.Application.get_mappings()
 GET     /load_mapping           controllers.Application.loadMapping(id:Long)
+GET     /delete_mapping         controllers.Application.deleteMapping(id:Long)

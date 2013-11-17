@@ -39,26 +39,13 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
       selectedItems: $scope.selectedMappingDocuments
    };
    
-   init();
    
-   function init() {
-      //  Request mapping documents from the server, if they've
-      //  not yet been loaded.
-      if (!mappingService.mappingDocuments) {
-          loadMappings();
-       }   
-      
-      // Listen for the grid's dataprovider to change
-      $scope.$on('ngGridEventData', function(e,gridId) {
-         //$scope.gridOptions
-      });
-   }
    
    /**
     * Load the list of mappings to be displayed in the grid. 
     */
    
-   function loadMappings() {
+   $scope.loadMappings = function() {
       mappingService.getMappings()
          .success(function (dt) {
              mappingService.mappingDocuments=dt.data;
@@ -70,7 +57,7 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
          .error(function (error) {
              $scope.status = 'Unable to load mappingDocuments: ' + error.message;
          });
-   }
+   };
    
    /**
     * Load all the data for a mapping. 
@@ -80,7 +67,37 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
          var selectedMappingId = $scope.selectedMappingDocuments[0].id;
          mappingService.loadMappingData(selectedMappingId);
       }
+   };
+   
+   $scope.deleteMapping = function() {
+       if ($scope.selectedMappingDocuments.length > 0) {
+         var selectedMappingId = $scope.selectedMappingDocuments[0].id;
+         mappingService.deleteMapping(selectedMappingId)
+            .success(function (dt) {
+                if (dt.status == 1) {
+                   // Record was deleted.  Reload mappings.
+                   $scope.loadMappings();
+                }
+            })
+            .error(function (error) {
+                $scope.status = 'Unable to delete mapping document: ' + error.message;
+            });
+      }
+   };
+   
+   init();
+   
+   function init() {
+      //  Request mapping documents from the server, if they've
+      //  not yet been loaded.
+      if (!mappingService.mappingDocuments) {
+          $scope.loadMappings();
+       }   
       
+      // Listen for the grid's dataprovider to change
+      $scope.$on('ngGridEventData', function(e,gridId) {
+         //$scope.gridOptions
+      });
    };
 }])
 
@@ -114,6 +131,7 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
 .factory('mappingService', ['$http', function($http) {
     var urlGetMappings = 'mappings/get';  // 'assets/data/sample-data.json';
     var urlMapping = 'load_mapping?id=';
+    var urlDeleteMapping = 'delete_mapping?id=';
     var mappingService = {};
     
     mappingService.tableData;
@@ -127,6 +145,10 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
     // Load all the data for a mapping document
     mappingService.loadMappingData = function (mappingNodeId) {
         return $http.get(urlMapping + mappingNodeId);
+    };
+    
+    mappingService.deleteMapping = function(mappingId) {
+        return $http.get(urlDeleteMapping + mappingId);
     };
 
     
