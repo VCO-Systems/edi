@@ -7,7 +7,9 @@ create table mapping (
   id                        bigint not null,
   name                      varchar(255),
   description               varchar(255),
+  ordering                  integer,
   mod_ts                    timestamp,
+  create_ts                 timestamp,
   constraint pk_mapping primary key (id))
 ;
 

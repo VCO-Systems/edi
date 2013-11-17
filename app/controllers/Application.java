@@ -17,11 +17,32 @@ public class Application extends Controller {
     }
     
     @BodyParser.Of(BodyParser.Json.class)
-    public static Result mappings() {
-        //List<Mapping> mappings = Mapping.find.all();
-        //renderJSON(mappings);
+    public static Result get_mappings() {
+        // List<Mapping> mappings = Mapping.find.all();
+        // renderJSON(mappings);
     	ObjectNode result = Json.newObject();
     	result.put("data", Json.toJson(Mapping.find.all()));
+    	return ok(result);
+    }
+    
+    public static Result loadMapping(Long mappingNodeId) {
+    	ObjectNode result = Json.newObject();
+    	if (mappingNodeId != null) {
+    		List<Mapping> matches = Mapping.find.where()
+    				.eq("id", mappingNodeId)
+    				.findList();
+    		Logger.debug(String.valueOf(matches.size()));
+    	    // If we found a matching mappind document, return it
+    		if (matches.size() > 0) {
+    	    	result.put("data", Json.toJson(matches));
+    		}
+    		else {
+    			result.put("error", "Mapping not found.");
+    		}
+    	}
+    	else if (mappingNodeId == null) {
+    		Logger.debug("Returning all mappings");
+    	}
     	return ok(result);
     }
 }

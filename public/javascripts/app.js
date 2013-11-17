@@ -14,21 +14,25 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
        });
 })
 
-.controller("HomeCtrl", ['$scope', 'mappingModel', function($scope, mappingModel) {
-   //$scope.list = mappingModel.list;
-   $scope.pageTitle = "Home Screen";
-   $scope.tableData = mappingModel.tableData;
+/**
+ * The home screen provides create/load/delete functionality
+ * for the mapping documents.
+ *  
+ */
+.controller("HomeCtrl", ['$scope', 'mappingService', function($scope, mappingService) {
+   $scope.pageTitle = "Mapping Definitions";
+   $scope.tableData = mappingService.tableData;
    
-   // Configure the grid that displays the mapping documents
-   $scope.mappingDocuments = mappingModel.mappingDocuments;
+   // Initialize the grid that displays the mapping documents
+   $scope.mappingDocuments = mappingService.mappingDocuments;
    $scope.selectedMappingDocuments = [];
    $scope.gridOptions = { 
       data: 'mappingDocuments',
       columnDefs: [
          {field:'name', displayName:'Name'}, 
-         {field:'create_ts', displayName:'Created On'},
-         {field:'mod_ts', displayName:'Last Edited On'},
-         {field:'create_user', displayName:'Created By'},
+         {field:'create_ts', displayName:'Created On', width: 125},
+         {field:'mod_ts', displayName:'Last Edited On', width: 125},
+         {field:'create_user', displayName:'Created By', width: 175}
       ],
       multiSelect: false,
       enableColumnResize: true,
@@ -38,50 +42,67 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
    init();
    
    function init() {
-      if (!mappingModel.mappingDocuments) {
+      //  Request mapping documents from the server, if they've
+      //  not yet been loaded.
+      if (!mappingService.mappingDocuments) {
           loadMappings();
        }   
+      
+      // Listen for the grid's dataprovider to change
+      $scope.$on('ngGridEventData', function(e,gridId) {
+         //$scope.gridOptions
+      });
    }
    
+   /**
+    * Load the list of mappings to be displayed in the grid. 
+    */
+   
    function loadMappings() {
-      mappingModel.loadMappings('assets/data/sample-mappings.json')
+      mappingService.getMappings()
          .success(function (dt) {
-             mappingModel.mappingDocuments=dt;
-             $scope.mappingDocuments = mappingModel.mappingDocuments;
+             mappingService.mappingDocuments=dt.data;
+             $scope.mappingDocuments = mappingService.mappingDocuments;
+             // A bug in ng-grid causes cols with width:auto to only resize
+             // on domReady.  So we need to force the grid to redraw now that it has data
+             
          })
          .error(function (error) {
              $scope.status = 'Unable to load mappingDocuments: ' + error.message;
          });
    }
    
+   /**
+    * Load all the data for a mapping. 
+    */
    $scope.loadMapping = function() {
       if ($scope.selectedMappingDocuments.length > 0) {
-         console.debug($scope.selectedMappingDocuments[0].node_id);   
+         var selectedMappingId = $scope.selectedMappingDocuments[0].id;
+         mappingService.loadMappingData(selectedMappingId);
       }
       
    };
 }])
 
-.controller("DatabaseEditorCtrl", ['$scope', 'mappingModel', function($scope, mappingModel) {
-   //$scope.list = mappingModel.list;
-   $scope.title = mappingModel.title;
+.controller("DatabaseEditorCtrl", ['$scope', 'mappingService', function($scope, mappingService) {
+   //$scope.list = mappingService.list;
+   $scope.title = mappingService.title;
    $scope.tm = tableManager();
    $scope.tableData;
-   //console.debug(mappingModel.sampleData);
    
    init();
 
    function init() {
-       if (!mappingModel.tableData) {
+       if (!mappingService.tableData) {
           getSampleData();
        }   
    };
    
     function getSampleData() {
-        mappingModel.getCustomers()
+        mappingService.getMappings()
             .success(function (dt) {
-                mappingModel.tableData=dt;
-                $scope.tableData = mappingModel.tableData;
+                mappingService.tableData=dt.data;
+                $scope.tableData = mappingService.tableData;
                 console.debug($scope.tableData);
             })
             .error(function (error) {
@@ -90,22 +111,25 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
     }
 }])
 
-.factory('mappingModel', ['$http', function($http) {
-    var urlBase = 'assets/data/sample-data.json';
-    var mappingModel = {};
+.factory('mappingService', ['$http', function($http) {
+    var urlGetMappings = 'mappings/get';  // 'assets/data/sample-data.json';
+    var urlMapping = 'load_mapping?id=';
+    var mappingService = {};
     
-    mappingModel.tableData;
-    mappingModel.mappingDocuments;
+    mappingService.tableData;
+    mappingService.mappingDocuments;
     
-    mappingModel.getCustomers = function () {
-        return $http.get(urlBase);
+    // Request a list of all mapping documents
+    mappingService.getMappings = function () {
+        return $http.get(urlGetMappings);
     };
     
-    mappingModel.loadMappings = function (requestURL) {
-        return $http.get(requestURL);
+    // Load all the data for a mapping document
+    mappingService.loadMappingData = function (mappingNodeId) {
+        return $http.get(urlMapping + mappingNodeId);
     };
 
     
 
-    return mappingModel;
+    return mappingService;
 }]);

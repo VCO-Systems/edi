@@ -7,10 +7,9 @@
         "create_ts": "Oct 12, 2013",
         "mod_ts": "Nov 5, 2013",
         "create_user": "Van Cahall",
-        "children": [
-           { "title": "customer_nbr", "node_id": 100, "order": 1, "nodeType": "tableField"},
-           { "title": "customer_name", "node_id": 101, "order": 2, "nodeType": "tableField"}
-        ]
+        "hasDatabaseSchema": true,
+        "hasXMLSchema": false,
+        "hasEDISchema": true
      },
      {
         "node_id": 2,
@@ -20,10 +19,9 @@
         "create_ts": "Oct 28, 2013",
         "mod_ts": "Nov 15, 2013",
         "create_user": "Karthik Kothandaraman",
-        "children": [
-           { "title": "customer_nbr", "node_id": 100, "order": 1, "nodeType": "tableField"},
-           { "title": "customer_name", "node_id": 101, "order": 2, "nodeType": "tableField"}
-        ]
+        "hasDatabaseSchema": true,
+        "hasXMLSchema": false,
+        "hasEDISchema": true
      },
      {
         "node_id": 3,
@@ -33,9 +31,8 @@
         "create_ts": "Nov 12, 2013",
         "mod_ts": "Nov 12, 2013",
         "create_user": "Van Cahall",
-        "children": [
-           { "title": "customer_nbr", "node_id": 100, "order": 1, "nodeType": "tableField"},
-           { "title": "customer_name", "node_id": 101, "order": 2, "nodeType": "tableField"}
-        ]
+        "hasDatabaseSchema": true,
+        "hasXMLSchema": false,
+        "hasEDISchema": true
      }
 ]

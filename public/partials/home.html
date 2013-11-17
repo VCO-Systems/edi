@@ -12,20 +12,18 @@
           </div>
         </div>
         
-      
-    
-    
        <div class="row">
            <div class="span12">
                <div class="gridStyle" ng-grid="gridOptions"></div>
            </div>
        </div><!-- end main row -->
        
-       <div class="row">
+       <div class="row" style="margin-top: 10px;">
            <div class="span12">
                <form class="form-inline">
-                  <button class="btn" ng-click="loadMapping(e)">Load</button>
-                  
+                  <button class="btn" ng-click="loadMapping()" ng-disabled="selectedMappingDocuments.length == 0">Load</button>
+                  <button class="btn" ng-click="createMapping()">Create</button>
+                  <button class="btn" ng-click="deleteMapping()" ng-disabled="selectedMappingDocuments.length == 0">Delete</button>
                </form>
            </div>
        </div>

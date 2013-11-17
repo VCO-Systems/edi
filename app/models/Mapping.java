@@ -19,6 +19,8 @@ public class Mapping extends Model {
   @Constraints.Required
   public String description;
   
+  public Integer ordering;
+  
   public static Finder<Long,Mapping> find = new Finder<Long,Mapping>(
 		    Long.class, Mapping.class
 		  ); 
@@ -26,6 +28,7 @@ public class Mapping extends Model {
   
   //@Formats.DateTime(pattern="dd/MM/yyyy")
   public Date mod_ts = new Date();
+  public Date create_ts = new Date();
   
   public Mapping() {
       this.mod_ts = new Date();
@@ -35,6 +38,7 @@ public class Mapping extends Model {
       this.name = name;
       this.description = description;
       this.mod_ts = new Date();
+      this.create_ts = new Date();
   }
 
 }
