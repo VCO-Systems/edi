@@ -40,7 +40,8 @@ body {
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
-#wrap > .container {
+#wrap > .container,
+#wrap > .ng-scope > .container {
   padding: 60px 15px 0;
 }
 .container .credit {

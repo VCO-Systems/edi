@@ -1,2 +1,33 @@
-<h1>Home Screen</h1>
-<p>Title: {{title}} </p>
+    <!-- Begin page content -->
+      <div class="container home-screen"> 
+        <div class="page-header">
+          <h1>{{pageTitle}}</h1>
+          <div id="toolbar" class="ui-widget-header ui-corner-all">
+             <div class="row">
+                <div class="col-lg-2">
+                </div>
+                <div class="col-lg-10"  >
+                </div>
+              </div>
+          </div>
+        </div>
+        
+      
+    
+    
+       <div class="row">
+           <div class="span12">
+               <div class="gridStyle" ng-grid="gridOptions"></div>
+           </div>
+       </div><!-- end main row -->
+       
+       <div class="row">
+           <div class="span12">
+               <form class="form-inline">
+                  <button class="btn" ng-click="loadMapping(e)">Load</button>
+                  
+               </form>
+           </div>
+       </div>
+       
+      </div><!-- end Container for page -->
