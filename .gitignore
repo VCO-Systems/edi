@@ -6,8 +6,13 @@
 
 # Eclipse
 /bin
-# Play! Framework stuff #
 
+# Play! Framework stuff #
+project/project
+project/target
+target
+tmp
+.target
 
 db
 eclipse
@@ -17,12 +22,12 @@ logs
 modules
 precompiled
 
-project/project
-project/target
-target
-tmp
 
+# Java
 *.class
+
+
+# Misc
 .history
 dist
 /.idea
@@ -31,7 +36,6 @@ dist
 /.idea_modules
 /.classpath
 /.project
-/.target
 /RUNNING_PID
 /.settings
 test-result
