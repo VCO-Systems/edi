@@ -1,0 +1,35 @@
+[
+    {"type": "table", "data": [
+        {
+           "node_id": 1,
+           "title": "Customers",
+           "x": 50,
+           "y": 50,
+           "order": 1,
+           "nodeType": "table",
+           "children": [
+              { "title": "customer_nbr", "node_id": 100, "order": 1, "nodeType": "tableField"},
+              { "title": "customer_name", "node_id": 101, "order": 2, "nodeType": "tableField"}
+           ]
+        },
+        {
+           "node_id": 2,
+           "title": "Shipments",
+           "x": 300,
+           "y": 50,
+           "order": 2,
+           "nodeType": "table",
+           "children": [
+              { "title": "shipment_nbr", "node_id": 102, "order": 1, "nodeType": "tableField"},
+              { "title": "order_id", "node_id": 103, "order": 2, "nodeType": "tableField"},
+              { "title": "shipment_date", "node_id": 104, "order": 3,"nodeType": "tableField"}
+           ]
+        }
+        ]
+    },
+    {"type": "edi", "data": [
+        {},
+        {}
+        ]
+    }
+]

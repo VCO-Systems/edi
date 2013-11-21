@@ -1,0 +1,18 @@
+
+# Users
+
+test_mappings:
+
+    - !!models.Mapping
+        name:         Sample Mapping 1
+        description:  Simple Orders mapping
+        ordering:     1
+    - !!models.Mapping
+        name:         Sample Mapping 2
+        description:  Semi-complete warehouse workflow
+        ordering:     2
+    - !!models.Mapping
+        name:         Template for Orders EDI
+        description:  Orders, Shipments, for an 802
+        ordering:     3
+            

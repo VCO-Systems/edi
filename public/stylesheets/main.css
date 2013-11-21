@@ -1,0 +1,21 @@
+/** Override a style in bootstrap 2.3.2 that looks for glyph
+ *    images in a folder that doesn't exist in our project.
+ */
+[class^="icon-"],
+[class*=" icon-"] {
+  background-image: url("../images/glyphicons-halflings.png");
+}
+
+.dropdown-submenu:focus > a > [class*=" icon-"] {
+  background-image: url("assets/images/glyphicons-halflings-white.png");
+}
+
+/***
+ *  The 'Home Screen' for loading/saving mappings. 
+ */
+
+   .home-screen .gridStyle {
+       border: 1px solid rgb(212,212,212);
+       width: 100%; 
+       height: 250px;
+   }
