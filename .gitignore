@@ -1,16 +1,19 @@
-logs
-project/project
-project/target
+# Extracted from https://github.com/ulrich/macaron-factory/blob/master/.gitignore
+# Ignore all dotfiles...
+.*
+# except for .gitignore
+!.gitignore
+
+# Java
+*.class
+
+# Eclipse
+bin
+.project
+.settings
+
+# Play Framework
 target
 .target
-tmp
-.history
-dist
-/.idea
-/*.iml
-/out
-/.idea_modules
-/.classpath
-/.project
-/RUNNING_PID
-/.settings
+log
+logs
