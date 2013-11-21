@@ -18,6 +18,7 @@ project/target
 target
 tmp
 
+*.class
 .history
 dist
 /.idea
@@ -26,9 +27,9 @@ dist
 /.idea_modules
 /.classpath
 /.project
+/.target
 /RUNNING_PID
 /.settings
-*.class
 test-result
 server.pid
 *.iml
