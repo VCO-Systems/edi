@@ -9,7 +9,8 @@
 
 # Eclipse
 bin
-/.project
+.project
+.settings
 
 # Play Framework
 target
