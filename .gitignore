@@ -4,7 +4,11 @@
 # except for .gitignore
 !.gitignore
 
-# Ignore Play! working directory #
+# Eclipse
+/bin
+# Play! Framework stuff #
+
+
 db
 eclipse
 lib
