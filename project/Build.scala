@@ -4,7 +4,7 @@ import play.Project._
 
 object ApplicationBuild extends Build {
 
-  val appName         = "EDI"
+  val appName         = "edi"
   val appVersion      = "0.1"
 
   val appDependencies = Seq(
