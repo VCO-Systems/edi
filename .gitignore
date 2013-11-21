@@ -6,6 +6,8 @@
 
 # Eclipse
 /bin
+*.launch
+
 
 # Play! Framework stuff #
 project/project
@@ -13,6 +15,8 @@ project/target
 target
 tmp
 .target
+/.target
+.target/**
 
 db
 eclipse
