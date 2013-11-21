@@ -4,45 +4,15 @@
 # except for .gitignore
 !.gitignore
 
-# Eclipse
-/bin
-*.launch
-
-
-# Play! Framework stuff #
-project/project
-project/target
-target
-tmp
-.target
-/.target
-.target/**
-
-db
-eclipse
-lib
-log
-logs
-modules
-precompiled
-
-
 # Java
 *.class
 
-
-# Misc
-.history
-dist
-/.idea
-/*.iml
-/out
-/.idea_modules
-/.classpath
+# Eclipse
+bin
 /.project
-/RUNNING_PID
-/.settings
-test-result
-server.pid
-*.iml
-*.eml
+
+# Play Framework
+target
+.target
+log
+logs
