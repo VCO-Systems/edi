@@ -1,0 +1,61 @@
+<div class="modal-header">
+   <!-- Header code goes here -->
+   <div class="btn-group">
+      <button class="btn" ng-class="{'btn-primary':isCurrentStep(0)}" ng-click="setCurrentStep(0)">
+         Uno
+      </button>
+      <button class="btn" ng-class="{'btn-primary':isCurrentStep(1)}" ng-click="setCurrentStep(1)">
+         Dos
+      </button>
+      <button class="btn" ng-class="{'btn-primary':isCurrentStep(2)}" ng-click="setCurrentStep(2)">
+         Tres
+      </button>
+   </div>
+</div>
+<div class="modal-body">
+   <!-- Body code goes here -->
+   <div ng-switch="getCurrentStep()" ng-animate="'slide'" class="slide-frame">
+      <div ng-switch-when="one">
+         <!-- STEP ONE -->
+         <fieldset>
+            <div class="control-group">
+               <label class="control-label" for="wiz_server_name">Server URL:</label>
+               <div class="controls" >
+                  <input type="text" id="wiz_server_name" placeholder="DB Name:">
+               </div>
+            </div>
+            <div class="control-group">
+               <label class="control-label" for="wiz_db_name">Database Name:</label>
+               <div class="controls" >
+                  <input type="text" id="wiz_db_name" placeholder="DB Name:">
+               </div>
+            </div>
+            <div class="control-group">
+               <label class="control-label" for="multiSelect">Toppings?</label>
+               <div class="controls">
+                  <select multiple="multiple" id="multiSelect" ng-model="wizard.toppings">
+                     <option>Cheese</option>
+                     <option>Guacamole</option>
+                     <option>Mild Salsa</option>
+                     <option>Hot Salsa</option>
+                     <option>Cilantro</option>
+                  </select>
+               </div>
+            </div>
+         </fieldset>
+      </div>
+      <div ng-switch-when="two">
+         <!-- STEP TWO -->
+      </div>
+      <div ng-switch-when="three">
+         <!-- STEP THREE -->
+      </div>
+   </div>
+</div>
+<div class="modal-footer">
+   <!-- Footer code goes here -->
+   <div class="modal-footer">
+      <a class="btn" ng-click="handlePrevious()" ng-show="!isFirstStep()">Back</a>
+      <a class="btn btn-primary" ng-click="handleNext(dismiss)">{{getNextLabel()}}</a>
+   </div>
+</div>

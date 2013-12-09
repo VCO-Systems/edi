@@ -12,3 +12,6 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 GET     /mappings/get           controllers.Application.get_mappings()
 GET     /load_mapping           controllers.Application.loadMapping(id:Long)
 GET     /delete_mapping         controllers.Application.deleteMapping(id:Long)
+
+# Schema inspection
+GET     /schema/get             controllers.Application.getSchema(database_name:String)
