@@ -74,6 +74,13 @@ public class Application extends Controller {
     	return ok(result);
     }
     
+    /**
+     * Returns the tables/fields for a given database,
+     * so the user can import an existing database into
+     * the UI.
+     * @param database_name
+     * @return JSON representation of database schema 
+     */
     public static Result getSchema(String database_name) {
     	ObjectNode result = Json.newObject();
     	//List<Object> data = new ArrayList<Object>();
@@ -83,7 +90,13 @@ public class Application extends Controller {
         PreparedStatement pst = null;
         ResultSet rs = null;
 
-        String url = "jdbc:postgresql://localhost/customer_db_1";
+        String url = "jdbc:postgresql://localhost/";
+        if (database_name.length() > 0 ) {
+        	url += database_name;
+        }
+        else {
+        	 // Todo:  let the user know they didn't supply a db name
+        }
         String user = "postgres";
         String password = "postgres";
  
@@ -97,17 +110,14 @@ public class Application extends Controller {
             rs = pst.executeQuery();
 
             while (rs.next()) {
-                //System.out.println(rs.getString(1));
             	ObjectNode tbl = Json.newObject(); 
             	tbl.put("table_name", rs.getString(1));
             	data.add(tbl);
             }
 
         } catch (SQLException ex) {
-//            Logger lgr = Logger.getLogger(ListTables.class.getName());
-//            lgr.log(Level.SEVERE, ex.getMessage(), ex);
         	  System.out.println(ex.getMessage());
-
+        	  result.put("Error", ex.getMessage());
         } finally {
 
             try {
@@ -123,8 +133,6 @@ public class Application extends Controller {
 
             } catch (SQLException ex) {
                 
-                //Logger lgr = Logger.getLogger(ListTables.class.getName());
-                //lgr.log(Level.WARNING, ex.getMessage(), ex);
             	System.out.println(ex.getMessage());
             }
         }

@@ -107,9 +107,13 @@ function($scope, mappingService) {
    //$scope.list = mappingService.list;
    
    // Set up the "import db schema" wizard
-   $scope.steps = ['one', 'two', 'three'];
+   $scope.steps = ['connect', 'filter', 'import'];
    $scope.step = 0;
-   $scope.import_data = {};
+   $scope.import_criteria = {db_name: ''};
+   $scope.defaults = { db_name: "customer_db_1"};
+   $scope.schema_to_import = {};
+   
+   //$scope.db_name =  "abc123";
 
    $scope.isCurrentStep = function(step) {
       return $scope.step === step;
@@ -140,24 +144,35 @@ function($scope, mappingService) {
    };
 
    $scope.handleNext = function(dismiss) {
-      if ($scope.isLastStep()) {
+      // If user pressed 'Next' on connect screen
+      if ($scope.getCurrentStep() == 'connect') {
+         // Todo:  send the request to server
+         $scope.importSchema();
+         $scope.step += 1;
+      }
+      else if ($scope.isLastStep()) {
          dismiss();
+         $scope.setCurrentStep(0);
       } else {
          $scope.step += 1;
       }
-   };
-   
-   $scope.test = function() {
-       
+      
    };
    
    $scope.importSchema = function() {
-      mappingService.importDatabaseSchema("fakeUrl").success(function(dt) {
+      mappingService.importDatabaseSchema($scope.import_criteria.db_name || $scope.defaults.db_name).success(function(result) {
          //mappingService.mappingDocuments = dt.data;
-         alert(dt.data);
+         if (result.Error) {
+            alert(result.Error);
+         }
+         else {  // We got results back
+            $scope.schema_to_import = result.data;
+         }
 
       }).error(function(error) {
-         $scope.status = 'Unable to import db schema: ' + error.message;
+         if (result.Error) {
+            alert(result.Error);
+         }
       }); 
    };
 
