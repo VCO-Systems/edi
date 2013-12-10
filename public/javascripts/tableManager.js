@@ -15,11 +15,13 @@ var tableManager =  function(){
    
    // Initialization
    var init = function() {
+      /*
       jqxhr = $.getJSON( "sample-data.json", function() {
          //console.log( "success" );
       })
       .done(dataLoaded);
-      
+      */
+     
       // Set up jsPlumb defaults for line handling
       jsPlumb.importDefaults({
           Container:$(".dbCanvas")
@@ -153,8 +155,11 @@ var tableManager =  function(){
     *  - applies proper drag/drop behavior
     *  
     */
-   var addTables = function (tablesToAdd) {
+   var addTables = function (tablesToAdd, autoLayout) {
       var dbCanvas = $('.dbCanvas');
+      // If we need to auto-layout these new tables,
+      // set the starting x and y position
+      var autoLayoutX =  autoLayoutY = 15;
       
       // Iterate over the tables to be added
       $(tablesToAdd).each(function(index) {
@@ -251,8 +256,12 @@ var tableManager =  function(){
          // If the table has stored position info,
          // move the table to that position within
          // the dbCanvas
-         newTable.css("left", this.x);
-         newTable.css("top", this.y);
+         if (this.x || this.y) {
+            newTable.css("left", this.x);
+            newTable.css("top", this.y);   
+         }
+         
+         
          newTable.append(tableHeader);
          newTable.append(tableFields);
          
@@ -289,10 +298,54 @@ var tableManager =  function(){
          
          // Append the table to the table canvas
          dbCanvas.append(newTable);
-         //dbCanvas.text(this.title);
+         
+         // If autoLayout is true, we also need to automatically position
+         // these tables, so they don't all get placed on top of each other
+         // (such as when we import table schemas from a db and there's no)
+         // x/y set.
+         if (autoLayout) {
+            autoLayoutTable(newTable);
+            // tableToPosition.css("left", autoLayoutX);
+            // tableToPosition.css("top", autoLayoutY);
+            var myWidth = newTable.width();
+            var myHeight = newTable.height();
+            var horizontalSpace = dbCanvas.width() - autoLayoutX;
+            var verticalSpace   = dbCanvas.height() - autoLayoutY;
+            console.log("Width of this table: " + newTable.width());
+            console.log("Remaining hor space: " + horizontalSpace);
+            
+            
+            
+            // If there's not enough horizontal space left in this row for the table,
+            // set horizontal back to 15 
+            if ( (horizontalSpace - myWidth - 30) > 0) {
+               autoLayoutX += 15;
+               newTable.css("left", autoLayoutX);
+               autoLayoutX += myWidth;
+               autoLayoutLowestPoint = Math.max(autoLayoutY, autoLayoutY + myHeight);
+            }
+            // The table didn't fit horizontally, so move it down 
+            else {
+               autoLayoutY = autoLayoutLowestPoint;  // move down to the next row
+               autoLayoutY += 15; // Add the default vertical spacing
+               autoLayoutX = 15;  // move back to the left edge
+               // place the table
+               newTable.css("left", autoLayoutX);           
+               newTable.css("top", autoLayoutY);
+            }
+            
+            // Position the new table
+            
+            
+            
+         }
       });
       
       $('.menu').dropit();
+      
+   };
+   
+   var autoLayoutTable = function(tableToPosition) {
       
    };
    
@@ -853,7 +906,8 @@ var tableManager =  function(){
    
    
    return {
-      init: init    
+      init: init,
+      addTables: addTables
    };
 
    

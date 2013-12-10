@@ -83,9 +83,18 @@ public class Application extends Controller {
      */
     public static Result getSchema(String database_name) {
     	ObjectNode result = Json.newObject();
-    	//List<Object> data = new ArrayList<Object>();
     	ArrayNode data = result.putArray("data");
-
+    	//List<Object> data = new ArrayList<Object>();
+    	
+    	// The "table" section of a mapping document has its own
+    	// structure we must re-create before passing data to UI.
+    	ObjectNode tableWrapper = Json.newObject();
+    	tableWrapper.put("type", "table");
+    	ArrayNode tableData = tableWrapper.putArray("data");
+    	
+    	
+    	
+    	
     	Connection con = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
@@ -111,7 +120,9 @@ public class Application extends Controller {
 
             while (rs.next()) {
             	ObjectNode tbl = Json.newObject(); 
-            	tbl.put("table_name", rs.getString(1));
+            	tbl.put("nodeType", "table");
+            	tbl.put("title", rs.getString(1));
+            	ArrayNode fields = tbl.putArray("children");
             	data.add(tbl);
             }
 
@@ -134,6 +145,129 @@ public class Application extends Controller {
             } catch (SQLException ex) {
                 
             	System.out.println(ex.getMessage());
+            }
+        }
+    	return ok(result);
+    }
+    
+    public static Result createSampleDatabase(String database_name) {
+    	ObjectNode result = Json.newObject();
+    	ArrayNode data = result.putArray("data");
+    	//List<Object> data = new ArrayList<Object>();
+    	
+    	// The "table" section of a mapping document has its own
+    	// structure we must re-create before passing data to UI.
+    	ObjectNode tableWrapper = Json.newObject();
+    	tableWrapper.put("type", "table");
+    	ArrayNode tableData = tableWrapper.putArray("data");
+    	
+    	
+    	
+    	
+    	Connection con = null;
+    	Statement st = null;
+        ResultSet rs = null;
+
+        String url = "jdbc:postgresql://localhost";
+        if (database_name.length() > 0 ) {
+        	//url += database_name;
+        }
+        else {
+        	 // Todo:  let the user know they didn't supply a db name
+        }
+        String user = "postgres";
+        String password = "postgres";
+ 
+        try {
+
+        	con = DriverManager.getConnection(url, user, password);
+        	st = con.createStatement();
+        	String sql = "DROP DATABASE if exists " + database_name + ";";
+        	sql += "CREATE DATABASE " + database_name + ";";
+        	//System.out.println("About to execute sql: " + sql);
+        	st.executeUpdate(sql);
+        	
+        	
+            // Connect to the database we jus recreated.
+        	con = DriverManager.getConnection(url + "/" + database_name, user, password);
+        	st = con.createStatement();
+            
+            con.setAutoCommit(false);
+            
+            // Create the Employees table
+            st.addBatch("DROP TABLE IF EXISTS employee");
+            st.addBatch("CREATE TABLE employee(id serial PRIMARY KEY, first_name VARCHAR(25), last_name VARCHAR(25))");
+            st.addBatch("INSERT INTO employee(first_name) VALUES ('Jane')");
+            st.addBatch("INSERT INTO employee(first_name) VALUES ('Tom')");
+            st.addBatch("INSERT INTO employee(first_name) VALUES ('Rebecca')");
+            st.addBatch("INSERT INTO employee(first_name) VALUES ('Jim')");
+            st.addBatch("INSERT INTO employee(first_name) VALUES ('Robert')");                 
+            
+            // Create the purchase_orders table
+            st.addBatch("DROP TABLE IF EXISTS purchase_order");
+            st.addBatch("CREATE TABLE purchase_order(id serial PRIMARY KEY, po_nbr VARCHAR(50), po_date timestamp with time zone)");
+            st.addBatch("INSERT INTO purchase_order(po_nbr) VALUES ('11111111')");
+            st.addBatch("INSERT INTO purchase_order(po_nbr) VALUES ('22222222')");
+            
+            // Create the shipments table
+            st.addBatch("DROP TABLE IF EXISTS shipment");
+            st.addBatch("CREATE TABLE shipment(id serial PRIMARY KEY, shipment_nbr VARCHAR(50), "
+            		+ "shipment_date timestamp with time zone"
+            		+ ",purchase_order_id integer"
+            		+ ", FOREIGN KEY (purchase_order_id) REFERENCES purchase_order(id) )");
+            st.addBatch("INSERT INTO shipment(shipment_nbr) VALUES ('999999')");
+            st.addBatch("INSERT INTO shipment(shipment_nbr, purchase_order_id) VALUES ('998888',1)");
+            
+            // Create the containers table
+            st.addBatch("DROP TABLE IF EXISTS container");
+            st.addBatch("CREATE TABLE container(id serial PRIMARY KEY, container_nbr integer"
+            		+ ",shipment_date timestamp with time zone"
+            		+ ",shipment_id integer"
+            		+ ", FOREIGN KEY (shipment_id) REFERENCES shipment(id) )");
+            st.addBatch("INSERT INTO container(container_nbr,shipment_id) VALUES ('12345',2)");
+            
+            // Create the item table
+            st.addBatch("DROP TABLE IF EXISTS item");
+            st.addBatch("CREATE TABLE item(id serial PRIMARY KEY, item_nbr integer"
+            		+ ", container_id integer"
+            		+ ", FOREIGN KEY (container_id) REFERENCES container(id) )");
+            st.addBatch("INSERT INTO item(item_nbr,container_id) VALUES ('12345',1)");
+            
+            int counts[] = st.executeBatch();
+            con.commit();
+        } catch (SQLException ex) {
+
+            System.out.println(ex.getNextException());
+            
+            if (con != null) {
+                try {
+                    con.rollback();
+                } catch (SQLException ex1) {
+//                    Logger lgr = Logger.getLogger(BatchUpdate.class.getName());
+//                    lgr.log(Level.WARNING, ex1.getMessage(), ex1);
+                	  System.out.println(ex1.getMessage());
+                }
+            }
+
+//            Logger lgr = Logger.getLogger(BatchUpdate.class.getName());
+//            lgr.log(Level.SEVERE, ex.getMessage(), ex);
+            System.out.println(ex.getMessage());
+
+        } finally {
+
+            try {
+ 
+                if (st != null) {
+                    st.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+
+            } catch (SQLException ex) {
+//                Logger lgr = Logger.getLogger(BatchUpdate.class.getName());
+//                lgr.log(Level.WARNING, ex.getMessage(), ex);
+            	  System.out.println(ex.getMessage());
             }
         }
     	return ok(result);

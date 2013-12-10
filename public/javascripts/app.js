@@ -102,8 +102,8 @@ function($scope, mappingService) {
 
 /**
  * Controller for the "Database Editor" screen.
- */.controller("DatabaseEditorCtrl", ['$scope', 'mappingService',
-function($scope, mappingService) {
+ */.controller("DatabaseEditorCtrl", ['$scope', 'mappingService', '$http',
+function($scope, mappingService, $http) {
    //$scope.list = mappingService.list;
    
    // Set up the "import db schema" wizard
@@ -112,6 +112,7 @@ function($scope, mappingService) {
    $scope.import_criteria = {db_name: ''};
    $scope.defaults = { db_name: "customer_db_1"};
    $scope.schema_to_import = {};
+   $scope.schema = {};
    
    //$scope.db_name =  "abc123";
 
@@ -150,9 +151,13 @@ function($scope, mappingService) {
          $scope.importSchema();
          $scope.step += 1;
       }
-      else if ($scope.isLastStep()) {
-         dismiss();
-         $scope.setCurrentStep(0);
+      else if ($scope.isLastStep()) {  // Submit
+         dismiss();  // close the wizard
+         // Start wizard next time it opens on first page
+         $scope.setCurrentStep(0); 
+         // Add this schema to the renderer
+         $scope.schema = $scope.schema_to_import;
+         $scope.tm.addTables($scope.schema, true);
       } else {
          $scope.step += 1;
       }
@@ -167,6 +172,7 @@ function($scope, mappingService) {
          }
          else {  // We got results back
             $scope.schema_to_import = result.data;
+            
          }
 
       }).error(function(error) {
@@ -174,6 +180,15 @@ function($scope, mappingService) {
             alert(result.Error);
          }
       }); 
+   };
+   
+   // STUB:  hook this function to dummy UI buttons during development
+   $scope.test = function() {
+      var url = "schema/generateSampleData";
+      url += "?database_name=" + ($scope.import_criteria.db_name || $scope.defaults.db_name);
+      $http.get(url).success(function(result){
+         
+      });
    };
 
    $scope.title = mappingService.title;
@@ -186,6 +201,9 @@ function($scope, mappingService) {
       if (!mappingService.tableData) {
          getSampleData();
       }
+      // initialize the jQuery tablemanger code
+      // TODO: rewrite this with angular directives
+      $scope.tm.init();
    };
 
    function getSampleData() {
@@ -227,6 +245,8 @@ function($http) {
    mappingService.importDatabaseSchema = function(db_url) {
       return $http.get("schema/get?database_name=" + db_url);
    };
+   
+   
 
    return mappingService;
 }]);

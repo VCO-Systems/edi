@@ -15,3 +15,4 @@ GET     /delete_mapping         controllers.Application.deleteMapping(id:Long)
 
 # Schema inspection
 GET     /schema/get             controllers.Application.getSchema(database_name:String)
+GET     /schema/generateSampleData controllers.Application.createSampleDatabase(database_name:String)
