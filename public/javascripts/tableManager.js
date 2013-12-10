@@ -11,7 +11,7 @@ var tableManager =  function(){
    
    // Layout defaults
    var defaults = {};
-   defaults["auto_table_spacing_horizontal"] = 100;
+   defaults["auto_table_spacing_horizontal"] = 40;
    
    var lineManager; // instance of jsPlumb for line drawing
    
@@ -806,6 +806,7 @@ var tableManager =  function(){
       var targetDomElement;
       for (var idx = 0; idx < coll.length; idx++) {
          var currentObject = coll[idx];
+         console.debug(currentObject);
          targetDomElement = currentObject.domElement.get(0);
          
          if (targetDomElement == requestedDomElement) {

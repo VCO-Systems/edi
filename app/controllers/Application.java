@@ -123,7 +123,8 @@ public class Application extends Controller {
             pst = con.prepareStatement(query);
 
             rs = pst.executeQuery();
-
+            
+            // Iterate over the fields in this postgres table
             while (rs.next()) {
             	ObjectNode tbl = Json.newObject(); 
             	tbl.put("nodeType", "table");
@@ -133,7 +134,9 @@ public class Application extends Controller {
             	// Look up the fields for this table
             	
             	ArrayNode fields = tbl.putArray("children");
-            	fields.addAll(getTableFields(con, rs.getString(1), nextNodeId));
+            	ObjectNode parsedFields = getTableFields(con, rs.getString(1), nextNodeId);
+            	nextNodeId = parsedFields.get("nextNodeId").asInt();
+            	fields.addAll((ArrayNode)parsedFields.get("return_value"));
             	System.out.println("fields object :   " + fields.toString());
             	data.add(tbl);
             }
@@ -162,7 +165,7 @@ public class Application extends Controller {
     	return ok(result);
     }
     
-    public static ArrayNode getTableFields(Connection con, String table_name, int nextNodeId) {
+    public static ObjectNode getTableFields(Connection con, String table_name, int nextNodeId) {
     	ObjectNode t = Json.newObject();  // dummy, just to hold the ArrayNode
     	ArrayNode retval = t.putArray("return_value");
     	ResultSet result = null;
@@ -184,7 +187,8 @@ public class Application extends Controller {
         		ObjectNode field = Json.newObject();
         		field.put("nodeType", "field");
         		field.put("title", result.getString(1));
-        		field.put("node_id", nextNodeId++  + 1000);
+        		field.put("node_id", nextNodeId++);
+        		t.put("nextNodeId", nextNodeId);
         		retval.add(field);
         	}
         	
@@ -214,7 +218,7 @@ public class Application extends Controller {
     	
     	
     	
-    		return retval;
+    		return t;
     	}
     
     public static Result createSampleDatabase(String database_name) {
