@@ -9,6 +9,10 @@ var tableManager =  function(){
    var newFieldName;
    var tempRecordId = 1000;
    
+   // Layout defaults
+   var defaults = {};
+   defaults["auto_table_spacing_horizontal"] = 100;
+   
    var lineManager; // instance of jsPlumb for line drawing
    
    var selectionMode = "normal"; 
@@ -159,7 +163,8 @@ var tableManager =  function(){
       var dbCanvas = $('.dbCanvas');
       // If we need to auto-layout these new tables,
       // set the starting x and y position
-      var autoLayoutX =  autoLayoutY = 15;
+      var autoLayoutX = 0;
+      var autoLayoutY = 15;
       
       // Iterate over the tables to be added
       $(tablesToAdd).each(function(index) {
@@ -301,12 +306,9 @@ var tableManager =  function(){
          
          // If autoLayout is true, we also need to automatically position
          // these tables, so they don't all get placed on top of each other
-         // (such as when we import table schemas from a db and there's no)
-         // x/y set.
+         // (such as when we import table schemas from a db and there's no
+         // x/y set)
          if (autoLayout) {
-            autoLayoutTable(newTable);
-            // tableToPosition.css("left", autoLayoutX);
-            // tableToPosition.css("top", autoLayoutY);
             var myWidth = newTable.width();
             var myHeight = newTable.height();
             var horizontalSpace = dbCanvas.width() - autoLayoutX;
@@ -314,13 +316,12 @@ var tableManager =  function(){
             console.log("Width of this table: " + newTable.width());
             console.log("Remaining hor space: " + horizontalSpace);
             
-            
-            
-            // If there's not enough horizontal space left in this row for the table,
-            // set horizontal back to 15 
-            if ( (horizontalSpace - myWidth - 30) > 0) {
-               autoLayoutX += 15;
+            // If there's enough horizontal space left in this row for the table,
+            // then display it in this "row" 
+            if ( (horizontalSpace - myWidth - (defaults["auto_table_spacing_horizontal"]*2) ) > 0) {
+               autoLayoutX += defaults["auto_table_spacing_horizontal"];
                newTable.css("left", autoLayoutX);
+               newTable.css("top", autoLayoutY);
                autoLayoutX += myWidth;
                autoLayoutLowestPoint = Math.max(autoLayoutY, autoLayoutY + myHeight);
             }
@@ -328,10 +329,13 @@ var tableManager =  function(){
             else {
                autoLayoutY = autoLayoutLowestPoint;  // move down to the next row
                autoLayoutY += 15; // Add the default vertical spacing
-               autoLayoutX = 15;  // move back to the left edge
+               autoLayoutX = defaults["auto_table_spacing_horizontal"];  // move back to the left edge
                // place the table
                newTable.css("left", autoLayoutX);           
                newTable.css("top", autoLayoutY);
+               // Update the pointers for the next table
+               autoLayoutX += myWidth;
+               autoLayoutLowestPoint = Math.max(autoLayoutY, autoLayoutY + myHeight);
             }
             
             // Position the new table
@@ -342,10 +346,6 @@ var tableManager =  function(){
       });
       
       $('.menu').dropit();
-      
-   };
-   
-   var autoLayoutTable = function(tableToPosition) {
       
    };
    
