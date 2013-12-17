@@ -1,94 +1,88 @@
-[
-    {
-        "type": "document",
-        "id": 1,
-        "title": "Acme Shipping - 856 Mapping",
-        "source_structure": {
-            "type": "database",
+{
+   "type": "document",
+   "id": 1,
+   "title": "Acme Shipping - 856 Mapping",
+   "source_structure": {
+      "type": "database",
+      "metadata": {
+         "db_name": "acme_wms"
+      },
+      "data": [
+         {
+            "node_id": 1,
+            "type": "table",
+            "title": "Customer",
+            "order": 1,
             "metadata": {
-                "db_name": "acme_wms"
+               "x": 50,
+               "y": 112
             },
-            "data": [
-                {
-                    "node_id": 1,
-                    "type": "table",
-                    "title": "Customer",
-                    "order": 1,
-                    "metadata": {
-                        "x": 50,
-                        "y": 112
-                    },
-                    "fields": [
-                        {
-                            "title": "id",
-                            "node_id": 2,
-                            "order": 1,
-                            "type": "field",
-                            "metadata": {
-                                "type": "int"
-                            }
-                        },
-                        {
-                            "title": "customer_num",
-                            "node_id": 3,
-                            "order": 2,
-                            "type": "field",
-                            "metadata": {
-                                "type": "String"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "node_id": 4,
-                    "type": "table",
-                    "title": "Order",
-                    "order": 2,
-                    "metadata": {
-                        "x": 150,
-                        "y": 250
-                    },
-                    "fields": [
-                        {
-                            "title": "id",
-                            "node_id": 5,
-                            "order": 1,
-                            "type": "field",
-                            "metadata": {
-                                "type": "int"
-                            }
-                        },
-                        {
-                            "title": "order_num",
-                            "node_id": 6,
-                            "order": 2,
-                            "type": "field",
-                            "metadata": {
-                                "type": "String"
-                            }
-                        },
-                        {
-                            "title": "customer_id",
-                            "node_id": 7,
-                            "order": 3,
-                            "type": "field",
-                            "metadata": {
-                                "type": "int"
-                            }
-                        }
-                    ]
-                }
-            ],
-            "relationships": [
-                {
-                    "type": "relationship",
-                    "source_node_id": 7,
-                    "target_node_id": 2,
-                    "metadata": {
-                        "type": "ManyToOne"
-                    }
-                }
+            "fields": [
+               {
+                  "title": "id",
+                  "node_id": 2,
+                  "order": 1,
+                  "type": "field",
+                  "metadata": {
+                     "type": "int"
+                  }
+               }, {
+                  "title": "customer_num",
+                  "node_id": 3,
+                  "order": 2,
+                  "type": "field",
+                  "metadata": {
+                     "type": "String"
+                  }
+               }
             ]
-        }
-    }
-]
+         }, {
+            "node_id": 4,
+            "type": "table",
+            "title": "Order",
+            "order": 2,
+            "metadata": {
+               "x": 150,
+               "y": 250
+            },
+            "fields": [
+               {
+                  "title": "id",
+                  "node_id": 5,
+                  "order": 1,
+                  "type": "field",
+                  "metadata": {
+                     "type": "int"
+                  }
+               }, {
+                  "title": "order_num",
+                  "node_id": 6,
+                  "order": 2,
+                  "type": "field",
+                  "metadata": {
+                     "type": "String"
+                  }
+               }, {
+                  "title": "customer_id",
+                  "node_id": 7,
+                  "order": 3,
+                  "type": "field",
+                  "metadata": {
+                     "type": "int"
+                  }
+               }
+            ]
+         }
+      ],
+      "relationships": [
+         {
+            "type": "relationship",
+            "source_node_id": 7,
+            "target_node_id": 2,
+            "metadata": {
+               "type": "ManyToOne"
+            }
+         }
+      ]
+   }
+}

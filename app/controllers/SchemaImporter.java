@@ -1,14 +1,20 @@
 package controllers;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Iterator;
 import java.util.List;
 import javax.persistence.*;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
@@ -27,8 +33,17 @@ public class SchemaImporter extends Controller {
      * @return result  
      */
     public static ObjectNode getSchema(String database_name, ObjectNode result) {
-    	// Setup
+    	// Since an imported schema replaces any existing schema in the UI editor,
+    	// we first create a new data structure to represent the tables/fields/relationships
+    	result.put("type", "database");
+    	// Place table_name in metadata: "metadata": {"table_name": "..."}
+    	ObjectNode jo = Json.newObject();
+    	jo.put("db_name", database_name);
+    	result.put("metadata", jo);
+    	
+    	// Create the "data":[] array which will hold the tables/fields
     	ArrayNode data = result.putArray("data");
+    	
     	// STUB:  simulate node_ids for these nodes, as well as
     	// the 'order' field, so the UI will render properly.
     	// This is temporary, until proper "temp node id" handling
@@ -64,7 +79,7 @@ public class SchemaImporter extends Controller {
 
             rs = pst.executeQuery();
             
-            // Iterate over the fields in this postgres table
+            // Iterate over the tables in this database
             while (rs.next()) {
             	ObjectNode tbl = Json.newObject(); 
             	tbl.put("nodeType", "table");
@@ -83,11 +98,11 @@ public class SchemaImporter extends Controller {
             	
             	data.add(tbl);
             	
-            	// Now that we have all the tables/fields, we can 
-            	// look up foreign keys and add them to the 
-            	// the appropriate tables
-            	
             }
+        	// Now that we have all the tables/fields, we can 
+        	// look up foreign keys and add them to the 
+        	// the appropriate tables
+        	result = getRelationships(con, result);
 
         } catch (SQLException ex) {
         	  System.out.println(ex.getMessage());
@@ -113,6 +128,18 @@ public class SchemaImporter extends Controller {
     	return result;
     }
     
+    /**
+     * Returns a list of fields in the given table, using the given connection.
+     * 
+     * Number each field, starting with nextNodeId, so that the unique UUIDs 
+     * persist across the tables as well.
+     * 
+     * @param con
+     * @param table_name
+     * @param nextNodeId
+     * @return
+     */
+    
     public static ObjectNode getTableFields(Connection con, String table_name, int nextNodeId) {
     	ObjectNode t = Json.newObject();  // dummy, just to hold the ArrayNode
     	ArrayNode retval = t.putArray("return_value");
@@ -126,7 +153,6 @@ public class SchemaImporter extends Controller {
     		    + "= (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier)) "
     		    + "WHERE c.table_schema = 'public' AND c.table_name = '" + table_name + "' "
     		    + "ORDER BY c.ordinal_position;";
-    	System.out.println("About to look up fields for " + table_name);
     	try {
     		pst = con.prepareStatement(query);
         	result = pst.executeQuery();
@@ -145,35 +171,121 @@ public class SchemaImporter extends Controller {
     		//result.put("Error", ex.getMessage());
     	
 	    } finally {
-	
-	        try {
-	            if (result != null) {
-	                result.close();
-	            }
-	            if (pst != null) {
-	                pst.close();
-	            }
-	            if (con != null) {
-	                //con.close();
-	            }
-	
-	        } catch (SQLException ex) {
-	            
-	        	System.out.println(ex.getMessage());
-	        }
+	    	// Don't close the connection here, because our connection was passed in
+	    	// from another method, and closing it will be handled there (in case 
+	    	// other methods need the same connection)
 	    }
     		return t;
     }
     
     /**
      * Returns the foreign key relationship whose source/target
-     * are included in the tables described in result.
+     * are included in the tables described in result.data
      * 
+     * @param con
      * @param result 
      * @return result  
      */
-    public static ObjectNode getRelationships(ObjectNode result) {
-    	
+    public static ObjectNode getRelationships(Connection con, ObjectNode result) {
+    	try {
+    		ObjectMapper mapper = new ObjectMapper();
+    		JsonNode root = mapper.readValue(result, JsonNode.class);
+	    	
+	    	// Get the database name so we can look up FK relationships 
+	    	String db_name = root.get("metadata").get("db_name").getTextValue();
+	    	// Create (or overwrite) the list of relationships we're about to populate
+	    	ArrayNode relations = result.putArray("relationships");
+	    	
+	    	// the raw sql for all foreign key rels in a table
+	    	String query = "SELECT tc.table_schema, tc.constraint_name, tc.table_name, kcu.column_name, ccu.table_name "
+	    			+ " AS foreign_table_name, ccu.column_name AS foreign_column_name"
+	    			+ " FROM information_schema.table_constraints tc"
+	    			+ " JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name"
+	    			+ " JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name = tc.constraint_name"
+	    			+ " WHERE constraint_type = 'FOREIGN KEY'";
+	    			//+ " AND ccu.table_name='" + db_name + "'";
+	    	// Execute the query
+	        PreparedStatement pst = null;
+	        ResultSet rs = null;
+	        try {
+	        	pst = con.prepareStatement(query);
+	        	rs = pst.executeQuery();
+	        	// Loop over the Foreign Key entries
+	        	while (rs.next()) {
+	        		ObjectNode fk = Json.newObject();
+	        		relations.add(fk);
+	        		String fk_source_table_name = rs.getString("table_name");
+	        		String fk_source_column_name = rs.getString("column_name");
+	        		String fk_target_table_name = rs.getString("foreign_table_name");
+	        		String fk_target_column_name = rs.getString("foreign_column_name");
+	        		// Find the source table
+	        		JsonNode tablesNode = root.path("data");
+	        		Iterator<JsonNode> tableList = tablesNode.getElements();
+	        		// Loop over tables in our imported schema
+	        		while (tableList.hasNext()) {
+	        			JsonNode tbl = tableList.next();
+	        			String tbl_name = tbl.get("title").getTextValue();
+	        			
+	        			// If this is the source table
+	        			if (fk_source_table_name.equals(tbl_name)){
+	        				// Find the source field
+	        				JsonNode fieldsNode = tbl.path("children");
+	        				Iterator<JsonNode> fieldList = fieldsNode.getElements();
+	        				// Loop over the fields in the source table
+	        				while (fieldList.hasNext()) {
+	        					JsonNode fld = fieldList.next();
+	        					String fld_name = fld.get("title").getTextValue();
+	        					if (fk_source_column_name.equals(fld_name)) {
+	        						// System.out.println("\tSource field id: " + fld.get("node_id"));
+	        						fk.put("source_node_id", fld.get("node_id"));
+	        					}
+	        				}
+	        			}
+	        			
+	        			
+	        			
+	        			
+	        			
+	        			// If this is the target table
+	        			if (fk_target_table_name.equals(tbl_name)){
+	        				// Find the target field
+	        				JsonNode fieldsNode = tbl.path("children");
+	        				Iterator<JsonNode> fieldList = fieldsNode.getElements();
+	        				// Loop over the fields in the target table
+	        				while (fieldList.hasNext()) {
+	        					JsonNode fld = fieldList.next();
+	        					String fld_name = fld.get("title").getTextValue();
+	        					if (fk_target_column_name.equals(fld_name)) {
+	        						// System.out.println("\tSource field id: " + fld.get("node_id"));
+	        						fk.put("target_node_id", fld.get("node_id"));
+	        					}
+	        				}
+	        			}
+	        			
+	        			
+	        			
+	        			
+	        			
+	        			
+	        		}
+	        	}
+	        	
+	        } catch (SQLException ex) {
+	    		System.out.println(ex.getMessage());
+		    }
+	        
+	        
+    	}
+    	catch (JsonParseException e) {
+    		
+    	}
+    	catch (JsonMappingException e) {
+    		
+    	}
+    	catch (IOException e) {
+    		
+    	}
+	    	
     	return result;
     }
     
