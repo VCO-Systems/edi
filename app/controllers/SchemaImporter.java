@@ -8,8 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
-import java.util.List;
-import javax.persistence.*;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
@@ -18,7 +16,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
-import play.*;
 import play.mvc.*;
 import play.libs.Json;
 
@@ -54,7 +51,6 @@ public class SchemaImporter extends Controller {
     	// structure we must re-create before passing data to UI.
     	ObjectNode tableWrapper = Json.newObject();
     	tableWrapper.put("type", "table");
-    	ArrayNode tableData = tableWrapper.putArray("data");
     	
     	Connection con = null;
         PreparedStatement pst = null;
@@ -92,10 +88,7 @@ public class SchemaImporter extends Controller {
             	ObjectNode parsedFields = getTableFields(con, rs.getString(1), nextNodeId);
             	nextNodeId = parsedFields.get("nextNodeId").asInt();
             	fields.addAll((ArrayNode)parsedFields.get("return_value"));
-            	
-            	// STUB: list the fields
-            	List<String> titles = parsedFields.findValuesAsText("title");
-            	
+            	// Add this table to the return value
             	data.add(tbl);
             	
             }
@@ -191,8 +184,6 @@ public class SchemaImporter extends Controller {
     		ObjectMapper mapper = new ObjectMapper();
     		JsonNode root = mapper.readValue(result, JsonNode.class);
 	    	
-	    	// Get the database name so we can look up FK relationships 
-	    	String db_name = root.get("metadata").get("db_name").getTextValue();
 	    	// Create (or overwrite) the list of relationships we're about to populate
 	    	ArrayNode relations = result.putArray("relationships");
 	    	
@@ -291,21 +282,14 @@ public class SchemaImporter extends Controller {
     
     public static Result createSampleDatabase(String database_name) {
     	ObjectNode result = Json.newObject();
-    	ArrayNode data = result.putArray("data");
-    	//List<Object> data = new ArrayList<Object>();
     	
     	// The "table" section of a mapping document has its own
     	// structure we must re-create before passing data to UI.
     	ObjectNode tableWrapper = Json.newObject();
     	tableWrapper.put("type", "table");
-    	ArrayNode tableData = tableWrapper.putArray("data");
-    	
-    	
-    	
     	
     	Connection con = null;
     	Statement st = null;
-        ResultSet rs = null;
 
         String url = "jdbc:postgresql://localhost";
         if (database_name.length() > 0 ) {
@@ -372,7 +356,6 @@ public class SchemaImporter extends Controller {
             		+ ", FOREIGN KEY (container_id) REFERENCES container(id) )");
             st.addBatch("INSERT INTO item(item_nbr,container_id) VALUES ('12345',1)");
             
-            int counts[] = st.executeBatch();
             con.commit();
         } catch (SQLException ex) {
 

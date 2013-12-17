@@ -1,22 +1,11 @@
 package controllers;
 
 import java.util.*;
-import javax.persistence.*;
-import play.*;
 import play.mvc.*;
 import play.libs.Json;
 
-import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import com.avaje.ebean.Ebean;
 
