@@ -84,7 +84,7 @@ public class SchemaImporter extends Controller {
             	nextNodeId++;
             	
             	// Look up the fields for this table
-            	ArrayNode fields = tbl.putArray("children");
+            	ArrayNode fields = tbl.putArray("fields");
             	ObjectNode parsedFields = getTableFields(con, rs.getString(1), nextNodeId);
             	nextNodeId = parsedFields.get("nextNodeId").asInt();
             	fields.addAll((ArrayNode)parsedFields.get("return_value"));
@@ -229,7 +229,7 @@ public class SchemaImporter extends Controller {
 	        			// If this is the source table
 	        			if (fk_source_table_name.equals(tbl_name)){
 	        				// Find the source field
-	        				JsonNode fieldsNode = tbl.path("children");
+	        				JsonNode fieldsNode = tbl.path("fields");
 	        				Iterator<JsonNode> fieldList = fieldsNode.getElements();
 	        				// Loop over the fields in the source table
 	        				while (fieldList.hasNext()) {
