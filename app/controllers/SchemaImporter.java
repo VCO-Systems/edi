@@ -95,7 +95,12 @@ public class SchemaImporter extends Controller {
         	// Now that we have all the tables/fields, we can 
         	// look up foreign keys and add them to the 
         	// the appropriate tables
-        	result = getRelationships(con, result);
+        	result = getRelationships(con, result, nextNodeId);
+        	// Since getRelationships() increment nextNodeId for
+        	// each relationship, pull the new nextNodeId value
+        	// out of the result JSON so it's correct for any later
+        	// operations.
+        	nextNodeId = result.get("nextNodeId").getIntValue();
 
         } catch (SQLException ex) {
         	  System.out.println(ex.getMessage());
@@ -179,7 +184,7 @@ public class SchemaImporter extends Controller {
      * @param result 
      * @return result  
      */
-    public static ObjectNode getRelationships(Connection con, ObjectNode result) {
+    public static ObjectNode getRelationships(Connection con, ObjectNode result, int nextNodeId) {
     	try {
     		ObjectMapper mapper = new ObjectMapper();
     		JsonNode root = mapper.readValue(result, JsonNode.class);
@@ -205,6 +210,9 @@ public class SchemaImporter extends Controller {
 	        	while (rs.next()) {
 	        		ObjectNode fk = Json.newObject();
 	        		relations.add(fk);
+	        		fk.put("node_id", nextNodeId++);
+	        		// Return the updated nextNodeId so others can continue to use it
+	        		result.put("nextNodeId", nextNodeId);
 	        		String fk_source_table_name = rs.getString("table_name");
 	        		String fk_source_column_name = rs.getString("column_name");
 	        		String fk_target_table_name = rs.getString("foreign_table_name");
@@ -231,11 +239,7 @@ public class SchemaImporter extends Controller {
 	        						fk.put("source_node_id", fld.get("node_id"));
 	        					}
 	        				}
-	        			}
-	        			
-	        			
-	        			
-	        			
+	        			}  // end: if this is the source table
 	        			
 	        			// If this is the target table
 	        			if (fk_target_table_name.equals(tbl_name)){
@@ -251,7 +255,7 @@ public class SchemaImporter extends Controller {
 	        						fk.put("target_node_id", fld.get("node_id"));
 	        					}
 	        				}
-	        			}
+	        			} // end:  if this is the target table
 	        			
 	        			
 	        			

@@ -2,6 +2,7 @@ var tableManager =  function(){
    
    // public vars
    var tableData = [];
+   var relationshipData = [];
    var mappingData = [];
    
    // private vars
@@ -313,8 +314,8 @@ var tableManager =  function(){
             var myHeight = newTable.height();
             var horizontalSpace = dbCanvas.width() - autoLayoutX;
             var verticalSpace   = dbCanvas.height() - autoLayoutY;
-            console.log("Width of this table: " + newTable.width());
-            console.log("Remaining hor space: " + horizontalSpace);
+            // console.log("Width of this table: " + newTable.width());
+            // console.log("Remaining hor space: " + horizontalSpace);
             
             // If there's enough horizontal space left in this row for the table,
             // then display it in this "row" 
@@ -343,6 +344,8 @@ var tableManager =  function(){
             
             
          }
+         
+         
       });
       
       $('.menu').dropit();
@@ -773,6 +776,7 @@ var tableManager =  function(){
       //console.log('collection.length: ' + coll.length);
       for (var idx = 0; idx < coll.length; idx++) {
          //console.log('looking for match: ', id, coll[idx].id);  
+         
          var el = coll[idx];
          var elId = coll[idx].node_id;
          if (elId == id) {
@@ -843,6 +847,24 @@ var tableManager =  function(){
    };
    
    /**
+    * Receives the definitions of a set of db relationships,
+    * and draws them on the screen.
+    */
+   
+   var requestMappingsByNodeId = function(relationships) {
+      // Loop over each relationship we got from the server
+      $.each(relationships, function(idx, relationship) {
+         var rel = relationships[idx];
+         var sourceDomEl = findObjectById(tableData, rel["source_node_id"]);
+         var targetDomEl = findObjectById(tableData, rel["target_node_id"]);
+         console.debug(sourceDomEl);
+         // Tell jsPlumb to connect these fields
+         jsPlumb.connect({ source:sourceDomEl.domElement, target:targetDomEl.domElement });
+         
+      });
+   };
+   
+   /**
     * Create a mapping between two objects. 
     */
    var requestMapping = function (sourceObject, targetObject, mappingType) {
@@ -908,7 +930,8 @@ var tableManager =  function(){
    
    return {
       init: init,
-      addTables: addTables
+      addTables: addTables,
+      requestMappingsByNodeId: requestMappingsByNodeId,
    };
 
    

@@ -158,6 +158,7 @@ function($scope, mappingService, $http) {
          // Add this schema to the renderer
          $scope.schema = $scope.schema_to_import;
          $scope.tm.addTables($scope.schema, true);
+         $scope.tm.requestMappingsByNodeId($scope.relationships_to_import);
       } else {
          $scope.step += 1;
       }
@@ -172,6 +173,7 @@ function($scope, mappingService, $http) {
          }
          else {  // We got results back
             $scope.schema_to_import = result.data;
+            $scope.relationships_to_import = result.relationships;
             
          }
 
