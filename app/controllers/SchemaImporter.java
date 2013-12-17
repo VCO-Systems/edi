@@ -188,6 +188,7 @@ public class SchemaImporter extends Controller {
     	try {
     		ObjectMapper mapper = new ObjectMapper();
     		JsonNode root = mapper.readValue(result, JsonNode.class);
+    		result.put("nextNodeId", nextNodeId);
 	    	
 	    	// Create (or overwrite) the list of relationships we're about to populate
 	    	ArrayNode relations = result.putArray("relationships");
