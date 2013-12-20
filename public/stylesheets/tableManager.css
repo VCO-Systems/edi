@@ -72,29 +72,13 @@ div.dbRenderer .slaveBody {
    
 }
 
-div.dbRenderer div.dbField {
-   padding-left: 0;
-   border-bottom: 1px solid #A3A3A3;
-}
 
-.dbField-gutter,
-.dbField-gutter-left,
-.dbField-gutter-right {
-   width: 8px;
-   background: #A3A3A3;   /* #838383; */
-   height: 20px;
-   display: inline-block;
-   cursor: pointer ;
-}
-.dbField-gutter-left {
-   margin-right: 8px;
-   position: relative;
-   float: left;
-}
+/*
 .dbField-gutter-right {
    float: right;
    position: relative;
 }
+*/
 
 /* Styles for the dropdown using dropit **/
    .menu ul { display: none; } /* Hide before plugin loads */
@@ -149,9 +133,45 @@ div.dbRenderer div.dbfield .allowedDrop {
    z-index: 10000;
 }
 
-.fieldTitle {
-   display: inline;
+.dbField {
+   clear: both:
+   display: block;
+   padding-left: 0;
+   border-bottom: 1px solid #A3A3A3;
 }
+   .dbField .fieldBody {
+      
+   }
+   .dbField .fieldTitle {
+      float: left;
+   }
+   
+   .fieldType {
+      border: solid 1px #c3c3c3;
+      border-radius:4px;
+      background-color: #f3f3f3;
+      -moz-border-radius:4px;
+      -webkit-border-radius:4px;
+      float: right;
+   }
+   
+      
+      .dbField-gutter,
+      .dbField-gutter-left,
+      .dbField-gutter-right {
+         width: 8px;
+         background: #A3A3A3;   /* #838383; */
+         height: 20px;
+         cursor: pointer ;
+      }
+      .dbField-gutter-left {
+         margin-right: 8px;
+         float: left;
+      }
+      
+      .dbField-gutter-right {
+         float: right;
+    }
 
 /*  Override the x-editable style that highlights
  *  a value after it's been changed by the popup.

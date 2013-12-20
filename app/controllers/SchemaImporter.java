@@ -160,6 +160,7 @@ public class SchemaImporter extends Controller {
         		field.put("nodeType", "field");
         		field.put("title", result.getString(1));
         		field.put("node_id", nextNodeId++);
+        		field.put("data_type", result.getString(2));
         		t.put("nextNodeId", nextNodeId);
         		retval.add(field);
         	}
@@ -212,7 +213,7 @@ public class SchemaImporter extends Controller {
 	        		ObjectNode fk = Json.newObject();
 	        		relations.add(fk);
 	        		fk.put("node_id", nextNodeId++);
-	        		// Return the updated nextNodeId so others can continue to use it
+	        		// Return the updated nextNodeId so others can pick up with the next number
 	        		result.put("nextNodeId", nextNodeId);
 	        		String fk_source_table_name = rs.getString("table_name");
 	        		String fk_source_column_name = rs.getString("column_name");

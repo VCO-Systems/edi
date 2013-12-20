@@ -360,7 +360,25 @@ var tableManager =  function(){
          //text: fieldObj.title
       });
       
-      var fieldTitle = $('<div >', {
+      // Add left/right gutters to act as the drag source/target
+      // for users when adding relationships between fields.
+      var leftGutter = $('<span>', {
+         class: "dbField-gutter dbField-gutter-left"
+      });
+      var rightGutter = $('<span>', {
+         class: "dbField-gutter dbField-gutter-right"
+      });
+      newField.append(leftGutter);
+      
+      // We just need this container so that we can float things like 'FK' or 'type' right
+      var fieldBody = $('<table >', {
+          class: "fieldBody"         
+      })
+      .appendTo(newField);
+      var tbody = $('<tbody>').appendTo(fieldBody);
+      var fieldBodyTR = $('<tr>').appendTo(tbody);
+      var fieldBodyTD1 = $('<td>').appendTo(fieldBodyTR);
+      var fieldTitle = $('<span >', {
          class: 'fieldTitle',
          text: fieldObj.title
       })
@@ -388,20 +406,19 @@ var tableManager =  function(){
          e.stopPropagation();
       })
       // Add this title to the field display
-      .appendTo(newField);
+      .appendTo(fieldBodyTD1);
       
+      var fieldBodyTD2 = $('<td>').appendTo(fieldBodyTR);
+      // Insert the "field type" indicator
+      var fieldType = $('<span >', {
+         class: 'fieldType',
+         text: fieldObj.data_type
+      })
+      .appendTo(fieldBodyTD2);
       
-      
-      // Add left/right gutters to act as the drag source/target
-      // for users when adding relationships between fields.
-      var leftGutter = $('<div>', {
-         class: "dbField-gutter dbField-gutter-left"
-      });
-      var rightGutter = $('<div>', {
-         class: "dbField-gutter dbField-gutter-right"
-      });
-      newField.prepend(leftGutter);
       newField.append(rightGutter);
+      
+      
       
       // Configure the field as a source/target for line drawing
       jsPlumb.makeSource(newField, {
@@ -437,7 +454,7 @@ var tableManager =  function(){
       //  using its dom element.
       findObjectById(tableData, fieldObj.node_id, "fields")['domElement'] = newField;
       tableObj.fieldContainer.append(newField);
-      
+      newField.addClass("dbField");
       
    };
    
