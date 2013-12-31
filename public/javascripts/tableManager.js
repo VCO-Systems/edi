@@ -244,6 +244,7 @@ var tableManager =  function(){
             },
             stop: function(event, ui) {
                 is_dragging = false;
+                jsPlumb.recalculateOffsets(newTable);
                 jsPlumb.repaintEverything();
             }
           });
