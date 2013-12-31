@@ -10,6 +10,9 @@ var tableManager =  function(){
    var newFieldName;
    var tempRecordId = 1000;
    
+   // literals
+   var prettyDataTypes = [ {"from": "character varying", "to": "char"} ];
+   
    // Layout defaults
    var defaults = {};
    defaults["auto_table_spacing_horizontal"] = 40;
@@ -395,12 +398,18 @@ var tableManager =  function(){
       // Add this title to the field display
       .appendTo(newField);
       
+      titleString = ' <span style="font-style: italic;">(';
+      // Display the data type of the field
+      if (fieldObj.data_type) {
+    	  titleString += getPrettyDataType(fieldObj.data_type);
+      }
       // If this field is a primary key, show "PK" next to field name
       if (fieldObj.primary_key) {
-    	  fieldTitle.append(" (PK)");
+    	  titleString += ", PK";
       }
+      titleString += ")</span>";
       
-      
+      fieldTitle.append(titleString);
       // Add left/right gutters to act as the drag source/target
       // for users when adding relationships between fields.
       var leftGutter = $('<div>', {
@@ -449,6 +458,16 @@ var tableManager =  function(){
       
       
    };
+   
+   var getPrettyDataType = function(originalDataType) {
+	   for (var idx = 0; idx < prettyDataTypes.length; idx++) {
+		   var pdt = prettyDataTypes[idx];
+		   if (pdt.from.valueOf() == originalDataType) {
+			   return pdt.to;
+		   }
+	   }
+	   return originalDataType;
+   }
    
    /** 
     *  User has clicked the "Add Field" button

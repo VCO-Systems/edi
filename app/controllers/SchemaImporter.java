@@ -176,6 +176,7 @@ public class SchemaImporter extends Controller {
         		ObjectNode field = Json.newObject();
         		field.put("nodeType", "field");
         		field.put("title", result.getString("column_name"));
+        		field.put("data_type", result.getString("data_type"));
         		field.put("node_id", nextNodeId++);
         		t.put("nextNodeId", nextNodeId);
         		field.put("primary_key", result.getBoolean("pk"));
@@ -245,11 +246,6 @@ public class SchemaImporter extends Controller {
 	    }
     		return result;
     }
-    
-    
-    
-    
-    
     
     
     /**
