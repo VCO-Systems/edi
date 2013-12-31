@@ -149,29 +149,41 @@ public class SchemaImporter extends Controller {
     	ResultSet result = null;
     	PreparedStatement pst = null;
     	
-    	// Construct the query to list fields for this table
-    	String query = "SELECT c.column_name, c.data_type, e.data_type AS element_type "
-    			+ " FROM information_schema.columns c LEFT JOIN information_schema.element_types e "
-    		    + "ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier) "
-    		    + "= (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier)) "
-    		    + "WHERE c.table_schema = 'public' AND c.table_name = '" + table_name + "' "
-    		    + "ORDER BY c.ordinal_position;";
+    	// Construct the query to list fields for this table, and whether they're a primary key
+    	
+    	String q = "SELECT c.table_name, c.column_name, c.data_type, e.data_type AS element_type , "
+    			+ " CASE WHEN (ccu.table_name=c.table_name AND ccu.column_name=c.column_name) THEN 'True' ELSE 'Nope' END AS pk " 
+    			+ " FROM information_schema.columns c " 
+    			+ " LEFT JOIN information_schema.element_types e " 
+    			+ " ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier) = "
+    			+ " (e.object_catalog, e.object_schema, e.object_name, e.object_type, e.collection_type_identifier)) "
+    			+ " LEFT JOIN information_schema.table_constraints tc "
+    			+ " ON ( tc.table_name = c.table_name  ) "
+    			+ " LEFT JOIN information_schema.constraint_column_usage AS ccu ON (ccu.constraint_schema=tc.constraint_schema AND ccu.constraint_name = tc.constraint_name) " 
+    			+ " WHERE c.table_schema = 'public' AND c.table_name = 'employee' " 
+    			+ " AND tc.constraint_type='PRIMARY KEY' AND tc.table_schema='public' "
+    			+ " ORDER BY c.ordinal_position;";
     	try {
     		
-    		pst = con.prepareStatement(query);
+    		pst = con.prepareStatement(q);
         	result = pst.executeQuery();
         	
         	// Get a list of foreign key fields for this table
-        	List<String> primaryKeyFieldNames = getTablePrimaryKeyFields(con, table_name); // new String[] {"AB","BC","CD","AE"};
+        	//List<String> primaryKeyFieldNames = getTablePrimaryKeyFields(con, table_name); // new String[] {"AB","BC","CD","AE"};
         	
         	// Loop over the fields for this table, and add them to retval
         	while (result.next()) {
         		ObjectNode field = Json.newObject();
         		field.put("nodeType", "field");
-        		field.put("title", result.getString(1));
+        		field.put("title", result.getString("column_name"));
         		field.put("node_id", nextNodeId++);
         		t.put("nextNodeId", nextNodeId);
-        		
+        		field.put("primary_key", result.getBoolean("pk"));
+//        		Boolean isPK = result.getBoolean("pk");
+//        		if (isPK == true) {
+//        			
+//        		}
+        		/*
         		// Loop over the PK field names for this table
         		for (String pkName:primaryKeyFieldNames) {
         			// If this field is a primary key
@@ -181,6 +193,7 @@ public class SchemaImporter extends Controller {
         				break;
         			}
         		}
+        		*/
         		
         		retval.add(field);
         	}
@@ -237,47 +250,7 @@ public class SchemaImporter extends Controller {
     
     
     
-    /**
-     * Returns a list of foreign key fields for a table, using a given connection.
-     * 
-     * 
-     * @param con
-     * @param table_name
-     * @param nextNodeId
-     * @return result
-     */
     
-    public static List<String> getTablePrimaryKeyFields(Connection con, String table_name) {
-    	
-    	List<String> retval = new ArrayList<String>();
-    	
-    	// Construct the query to list fields for this table
-    	String query = "SELECT c.column_name, c.data_type FROM information_schema.table_constraints tc "
-    			+ " JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) " 
-    			+ " JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name "
-    			+ " where constraint_type = 'PRIMARY KEY' and tc.table_name = '" + table_name + "';";
-    	
-    	try {
-        	ResultSet result =  executeSql(con, query);
-        	// List of the names of primary key fields
-        	final String[] foreignKeys; // = getTableForeignKeys(con, table_name); // new String[] {"AB","BC","CD","AE"};
-        	
-        	// Loop over the foreign keys entries from db, adding them to retval
-        	while (result.next()) {
-        		retval.add(result.getString(1));
-        	}
-        	
-    	} catch (SQLException ex) {
-    		System.out.println(ex.getMessage());
-    		//result.put("Error", ex.getMessage());
-    	
-	    } finally {
-	    	// Don't close the connection here, because our connection was passed in
-	    	// from another method, and closing it will be handled there (in case 
-	    	// other methods need the same connection)
-	    }
-    		return retval;
-    }
     
     /**
      * Returns the foreign key relationship whose source/target
@@ -334,6 +307,7 @@ public class SchemaImporter extends Controller {
 	        				// Find the source field
 	        				JsonNode fieldsNode = tbl.path("fields");
 	        				Iterator<JsonNode> fieldList = fieldsNode.getElements();
+	        				
 	        				// Loop over the fields in the source table
 	        				while (fieldList.hasNext()) {
 	        					JsonNode fld = fieldList.next();
@@ -382,6 +356,13 @@ public class SchemaImporter extends Controller {
 	    	
     	return result;
     }
+    
+    /*
+    public static int getNodeIdForTableField(String table_name, String field_name) {
+    	
+    	return retval;
+    }
+    */
     
     public static Result createSampleDatabase(String database_name) {
     	ObjectNode result = Json.newObject();
