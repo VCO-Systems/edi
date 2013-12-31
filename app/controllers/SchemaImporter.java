@@ -7,7 +7,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
@@ -96,7 +99,8 @@ public class SchemaImporter extends Controller {
         	// look up foreign keys and add them to the 
         	// the appropriate tables
         	result = getRelationships(con, result, nextNodeId);
-        	// Since getRelationships() increment nextNodeId for
+        	
+        	// Since getRelationships() increments nextNodeId for
         	// each relationship, pull the new nextNodeId value
         	// out of the result JSON so it's correct for any later
         	// operations.
@@ -135,16 +139,17 @@ public class SchemaImporter extends Controller {
      * @param con
      * @param table_name
      * @param nextNodeId
-     * @return
+     * @return result
      */
     
     public static ObjectNode getTableFields(Connection con, String table_name, int nextNodeId) {
+    	
     	ObjectNode t = Json.newObject();  // dummy, just to hold the ArrayNode
     	ArrayNode retval = t.putArray("return_value");
     	ResultSet result = null;
     	PreparedStatement pst = null;
     	
-    	// Prepare to make the query
+    	// Construct the query to list fields for this table
     	String query = "SELECT c.column_name, c.data_type, e.data_type AS element_type "
     			+ " FROM information_schema.columns c LEFT JOIN information_schema.element_types e "
     		    + "ON ((c.table_catalog, c.table_schema, c.table_name, 'TABLE', c.dtd_identifier) "
@@ -152,16 +157,31 @@ public class SchemaImporter extends Controller {
     		    + "WHERE c.table_schema = 'public' AND c.table_name = '" + table_name + "' "
     		    + "ORDER BY c.ordinal_position;";
     	try {
+    		
     		pst = con.prepareStatement(query);
         	result = pst.executeQuery();
+        	
+        	// Get a list of foreign key fields for this table
+        	List<String> primaryKeyFieldNames = getTablePrimaryKeyFields(con, table_name); // new String[] {"AB","BC","CD","AE"};
+        	
         	// Loop over the fields for this table, and add them to retval
         	while (result.next()) {
         		ObjectNode field = Json.newObject();
         		field.put("nodeType", "field");
         		field.put("title", result.getString(1));
         		field.put("node_id", nextNodeId++);
-        		field.put("data_type", result.getString(2));
         		t.put("nextNodeId", nextNodeId);
+        		
+        		// Loop over the PK field names for this table
+        		for (String pkName:primaryKeyFieldNames) {
+        			// If this field is a primary key
+        			if (pkName.trim().equals(result.getString(1).trim())) {
+        				// Mark field as PK in return JSON
+        				field.put("primary_key", true);
+        				break;
+        			}
+        		}
+        		
         		retval.add(field);
         	}
         	
@@ -175,6 +195,88 @@ public class SchemaImporter extends Controller {
 	    	// other methods need the same connection)
 	    }
     		return t;
+    }
+    
+    
+    
+    /**
+     * Returns a list of foreign key fields for a table, using a given connection.
+     * 
+     * 
+     * @param con
+     * @param table_name
+     * @param nextNodeId
+     * @return result
+     */
+    
+    public static ResultSet executeSql(Connection con, String query) {
+    	
+    	ObjectNode t = Json.newObject();  // dummy, just to hold the ArrayNode
+    	ArrayNode retval = t.putArray("return_value");
+    	ResultSet result = null;
+    	PreparedStatement pst = null;
+    	
+    	try {
+    		
+    		pst = con.prepareStatement(query);
+        	result = pst.executeQuery();
+        	
+    	} catch (SQLException ex) {
+    		System.out.println(ex.getMessage());
+    		//result.put("Error", ex.getMessage());
+    	
+	    } finally {
+	    	// Don't close the connection here, because our connection was passed in
+	    	// from another method, and closing it will be handled there (in case 
+	    	// other methods need the same connection)
+	    }
+    		return result;
+    }
+    
+    
+    
+    
+    
+    /**
+     * Returns a list of foreign key fields for a table, using a given connection.
+     * 
+     * 
+     * @param con
+     * @param table_name
+     * @param nextNodeId
+     * @return result
+     */
+    
+    public static List<String> getTablePrimaryKeyFields(Connection con, String table_name) {
+    	
+    	List<String> retval = new ArrayList<String>();
+    	
+    	// Construct the query to list fields for this table
+    	String query = "SELECT c.column_name, c.data_type FROM information_schema.table_constraints tc "
+    			+ " JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) " 
+    			+ " JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema AND tc.table_name = c.table_name AND ccu.column_name = c.column_name "
+    			+ " where constraint_type = 'PRIMARY KEY' and tc.table_name = '" + table_name + "';";
+    	
+    	try {
+        	ResultSet result =  executeSql(con, query);
+        	// List of the names of primary key fields
+        	final String[] foreignKeys; // = getTableForeignKeys(con, table_name); // new String[] {"AB","BC","CD","AE"};
+        	
+        	// Loop over the foreign keys entries from db, adding them to retval
+        	while (result.next()) {
+        		retval.add(result.getString(1));
+        	}
+        	
+    	} catch (SQLException ex) {
+    		System.out.println(ex.getMessage());
+    		//result.put("Error", ex.getMessage());
+    	
+	    } finally {
+	    	// Don't close the connection here, because our connection was passed in
+	    	// from another method, and closing it will be handled there (in case 
+	    	// other methods need the same connection)
+	    }
+    		return retval;
     }
     
     /**
@@ -213,7 +315,7 @@ public class SchemaImporter extends Controller {
 	        		ObjectNode fk = Json.newObject();
 	        		relations.add(fk);
 	        		fk.put("node_id", nextNodeId++);
-	        		// Return the updated nextNodeId so others can pick up with the next number
+	        		// Return the updated nextNodeId so UUIDs remain intact outside this method
 	        		result.put("nextNodeId", nextNodeId);
 	        		String fk_source_table_name = rs.getString("table_name");
 	        		String fk_source_column_name = rs.getString("column_name");
@@ -237,9 +339,10 @@ public class SchemaImporter extends Controller {
 	        					JsonNode fld = fieldList.next();
 	        					String fld_name = fld.get("title").getTextValue();
 	        					if (fk_source_column_name.equals(fld_name)) {
-	        						// System.out.println("\tSource field id: " + fld.get("node_id"));
+	        						// Record the source_node_id
 	        						fk.put("source_node_id", fld.get("node_id"));
 	        					}
+	        					
 	        				}
 	        			}  // end: if this is the source table
 	        			
@@ -258,12 +361,6 @@ public class SchemaImporter extends Controller {
 	        					}
 	        				}
 	        			} // end:  if this is the target table
-	        			
-	        			
-	        			
-	        			
-	        			
-	        			
 	        		}
 	        	}
 	        	
@@ -310,15 +407,18 @@ public class SchemaImporter extends Controller {
         try {
 
         	con = DriverManager.getConnection(url, user, password);
+        	//con = DriverManager.getConnection(url + "/" + database_name, user, password);
+        	//con.setAutoCommit(false);
         	st = con.createStatement();
         	String sql = "DROP DATABASE if exists " + database_name + ";";
-        	sql += "CREATE DATABASE " + database_name + ";";
-        	//System.out.println("About to execute sql: " + sql);
+        	sql += " CREATE DATABASE " + database_name + ";";
+        	System.out.println("About to execute sql: " + sql);
         	st.executeUpdate(sql);
-        	
+        	con.close();
         	
             // Connect to the database we jus recreated.
         	con = DriverManager.getConnection(url + "/" + database_name, user, password);
+        	st.close();
         	st = con.createStatement();
             
             con.setAutoCommit(false);
@@ -331,7 +431,6 @@ public class SchemaImporter extends Controller {
             st.addBatch("INSERT INTO employee(first_name) VALUES ('Rebecca')");
             st.addBatch("INSERT INTO employee(first_name) VALUES ('Jim')");
             st.addBatch("INSERT INTO employee(first_name) VALUES ('Robert')");                 
-            
             // Create the purchase_orders table
             st.addBatch("DROP TABLE IF EXISTS purchase_order");
             st.addBatch("CREATE TABLE purchase_order(id serial PRIMARY KEY, po_nbr VARCHAR(50), po_date timestamp with time zone)");
@@ -362,6 +461,8 @@ public class SchemaImporter extends Controller {
             		+ ", FOREIGN KEY (container_id) REFERENCES container(id) )");
             st.addBatch("INSERT INTO item(item_nbr,container_id) VALUES ('12345',1)");
             
+            // execute this sql
+            st.executeBatch();
             con.commit();
         } catch (SQLException ex) {
 

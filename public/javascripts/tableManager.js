@@ -351,6 +351,11 @@ var tableManager =  function(){
       $('.menu').dropit();
       
    };
+   /**
+    * Given a table and field data object, create the dom element
+    * and wire it up to events.
+    * 
+    */
    
    var addFieldToTable = function (tableObj, fieldObj) {
       // Create the field
@@ -360,25 +365,7 @@ var tableManager =  function(){
          //text: fieldObj.title
       });
       
-      // Add left/right gutters to act as the drag source/target
-      // for users when adding relationships between fields.
-      var leftGutter = $('<span>', {
-         class: "dbField-gutter dbField-gutter-left"
-      });
-      var rightGutter = $('<span>', {
-         class: "dbField-gutter dbField-gutter-right"
-      });
-      newField.append(leftGutter);
-      
-      // We just need this container so that we can float things like 'FK' or 'type' right
-      var fieldBody = $('<table >', {
-          class: "fieldBody"         
-      })
-      .appendTo(newField);
-      var tbody = $('<tbody>').appendTo(fieldBody);
-      var fieldBodyTR = $('<tr>').appendTo(tbody);
-      var fieldBodyTD1 = $('<td>').appendTo(fieldBodyTR);
-      var fieldTitle = $('<span >', {
+      var fieldTitle = $('<div >', {
          class: 'fieldTitle',
          text: fieldObj.title
       })
@@ -406,19 +393,24 @@ var tableManager =  function(){
          e.stopPropagation();
       })
       // Add this title to the field display
-      .appendTo(fieldBodyTD1);
+      .appendTo(newField);
       
-      var fieldBodyTD2 = $('<td>').appendTo(fieldBodyTR);
-      // Insert the "field type" indicator
-      var fieldType = $('<span >', {
-         class: 'fieldType',
-         text: fieldObj.data_type
-      })
-      .appendTo(fieldBodyTD2);
+      // If this field is a primary key, show "PK" next to field name
+      if (fieldObj.primary_key) {
+    	  fieldTitle.append(" (PK)");
+      }
       
+      
+      // Add left/right gutters to act as the drag source/target
+      // for users when adding relationships between fields.
+      var leftGutter = $('<div>', {
+         class: "dbField-gutter dbField-gutter-left"
+      });
+      var rightGutter = $('<div>', {
+         class: "dbField-gutter dbField-gutter-right"
+      });
+      newField.prepend(leftGutter);
       newField.append(rightGutter);
-      
-      
       
       // Configure the field as a source/target for line drawing
       jsPlumb.makeSource(newField, {
@@ -454,7 +446,7 @@ var tableManager =  function(){
       //  using its dom element.
       findObjectById(tableData, fieldObj.node_id, "fields")['domElement'] = newField;
       tableObj.fieldContainer.append(newField);
-      newField.addClass("dbField");
+      
       
    };
    
@@ -834,7 +826,7 @@ var tableManager =  function(){
          var targetDomEl = findObjectById(tableData, rel["target_node_id"], "fields");
          console.debug(sourceDomEl);
          // Tell jsPlumb to connect these fields
-         jsPlumb.connect({ source:sourceDomEl.domElement, target:targetDomEl.domElement });
+         //jsPlumb.connect({ source:sourceDomEl.domElement, target:targetDomEl.domElement });
          
       });
    };
