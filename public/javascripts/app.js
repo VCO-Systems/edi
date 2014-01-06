@@ -9,6 +9,10 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
            controller: 'DatabaseEditorCtrl',
            templateUrl: 'assets/partials/database-editor.html'
        }).
+       when('/smooks-ff-to-xml', {
+           controller: 'SmooksFFToXMLCtrl',
+           templateUrl: 'assets/partials/smooks-ff-to-xml.html'
+       }).
        otherwise({
            redirectTo: '/'
        });
@@ -127,6 +131,58 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
             });
     }
 }])
+
+/**
+ * The smooks-test screen is based on the Smooks xml-edi example, and verifies basic
+ * ability to send EDI from browser to server, convert to XML using Smooks on back end,
+ * and return XML to browser.
+ *  
+ */
+.controller("SmooksFFToXMLCtrl", [ '$scope', 'mappingService', '$http', function($scope, mappingService, $http) {
+		
+	$scope.pageTitle = "Smooks Flat-file to XML conversion";
+	$scope.status = ''; // Status message to display in the UI
+	$scope.edi_length = mappingService.tableData;
+	$scope.xml_string = '';
+	$scope.edi_string = "HDR*1*0*59.97*64.92*4.95*Wed Nov 15 13:45:28 EST 2006\n" +
+			"CUS*user1*Harry^Fletcher*SD\n" +
+			"ORD*1*1*364*The 40-Year-Old Virgin*29.98\n" +
+			"ORD*2*1*299*Pulp Fiction*29.99\n";
+	
+	$scope.sendEdi = function() {
+		$http({
+		    url: 'test/edi-to-xml',
+		    method: "POST",
+		    data: { 'edi_string' : $scope.edi_string }
+		})
+		.then(function(response) {
+		        // pass the converted XML to the model
+				console.debug(response);	
+				$scope.xml_string = response.data;
+		    }, 
+		    function(response) { // optional
+		        // failed
+		    	alert('failure');
+		    }
+		);
+	}
+	
+	$scope.sendEdi2 = function() {
+		
+		$http.get('test/edi-to-xml?edi_string=' + encodeURIComponent($scope.edi_string))
+	         .success(function (dt) {
+	             // mappingService.mappingDocuments=dt.data;
+	             var raw_xml = dt;
+	             $scope.xml_string = dt;
+	             //$scope.converted_xml = dt.data
+	             $scope.status = "EDI converted.";
+	         })
+	         .error(function (error) {
+	             $scope.status = 'Error converting EDI to XML: ' + error.message;
+	         });
+	   };
+
+} ])
 
 .factory('mappingService', ['$http', function($http) {
     var urlGetMappings = 'mappings/get';  // 'assets/data/sample-data.json';

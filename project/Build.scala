@@ -12,7 +12,10 @@ object ApplicationBuild extends Build {
     javaCore,
     javaJdbc,
     javaEbean,
-    "postgresql" % "postgresql" % "9.1-901.jdbc4"
+    "postgresql" % "postgresql" % "9.1-901.jdbc4",
+    "org.milyn" % "milyn-smooks-core" % "1.5.1", 
+    "org.milyn" % "milyn-smooks-javabean" % "1.5.1",
+    "org.milyn" % "milyn-smooks-edi" % "1.5.1"
   )
 
   val main = play.Project(appName, appVersion, appDependencies).settings(

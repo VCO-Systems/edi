@@ -1,0 +1,57 @@
+<style type="text/css">
+	.form_label {
+		font-weight: bold;
+	}
+</style>
+
+    <!-- Begin page content -->
+      <div class="container smooks-test"> 
+        <div class="page-header">
+          <h1>{{pageTitle}}</h1>
+          <div ng-model="status"></div>
+          <div id="toolbar" class="ui-widget-header ui-corner-all">
+             <div class="row">
+                <div class="col-lg-2">
+                </div>
+                <div class="col-lg-10"  >
+                </div>
+              </div>
+          </div>
+        </div>
+        
+       <div class="row">
+           <div class="span12">
+               <div class="form_label">EDI INPUT</div>
+           </div>
+       </div>
+       
+       <div class="row">
+           <div class="span12">
+               <textarea id="edi_input" ng-model="edi_string" class=" row-fluid" rows="4">
+</textarea>
+           </div>
+       </div><!-- end EDI INPUT row -->
+       
+       <div class="row" style="margin-top: 10px;">
+           <div class="span12">
+               <form class="form-inline">
+                  <button class="btn" ng-click="sendEdi()" >Send EDI to server</button>
+               </form>
+           </div>
+       </div>
+       
+       <div class="row">
+           <div class="span12">
+               <div  class="form_label">XML Output</div>
+           </div>
+       </div>
+       
+       <div class="row">
+           <div class="span12">
+               <textarea id="xml_output" ng-model="xml_string" class="row-fluid" rows="8"></textarea>
+           </div>
+       </div><!-- end EDI INPUT row -->
+       
+       
+       
+      </div><!-- end Container for page -->
