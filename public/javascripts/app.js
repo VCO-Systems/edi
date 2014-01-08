@@ -17,6 +17,7 @@ angular.module('ediApp', ['ngRoute','ngGrid']).
            redirectTo: '/'
        });
 })
+
 /**
  * The home screen provides create/load/delete functionality
  * for the mapping documents.
@@ -256,7 +257,7 @@ function($http) {
       return $http.get("schema/get?database_name=" + db_url);
    };
    
-   
+} ]) 
 
 /**
  * The smooks-test screen is based on the Smooks xml-edi example, and verifies basic
