@@ -2,6 +2,7 @@ var tableManager =  function(){
    
    // public vars
    var tableData = [];
+   var relationshipData = [];
    var mappingData = [];
    
    // private vars
@@ -9,17 +10,26 @@ var tableManager =  function(){
    var newFieldName;
    var tempRecordId = 1000;
    
+   // literals
+   var prettyDataTypes = [ {"from": "character varying", "to": "char"} ];
+   
+   // Layout defaults
+   var defaults = {};
+   defaults["auto_table_spacing_horizontal"] = 40;
+   
    var lineManager; // instance of jsPlumb for line drawing
    
    var selectionMode = "normal"; 
    
    // Initialization
    var init = function() {
+      /*
       jqxhr = $.getJSON( "sample-data.json", function() {
          //console.log( "success" );
       })
       .done(dataLoaded);
-      
+      */
+     
       // Set up jsPlumb defaults for line handling
       jsPlumb.importDefaults({
           Container:$(".dbCanvas")
@@ -107,7 +117,7 @@ var tableManager =  function(){
                "x": event.offsetX,
                "y": event.offsetY,
                "nodeType": "table",
-               "children": []
+               "fields": []
             };
             var newTableCollection = new Array(newTbl);
             addTables(newTableCollection);
@@ -137,8 +147,8 @@ var tableManager =  function(){
    var requestFieldMappingFromUIEvent = function(jsPlumbConnectionInfo) {
       // Look up the data objects for this mapping from 
       // the dom elements from jsPlumb
-      var sourceDataObject = findObjectByDomElement(tableData, jsPlumbConnectionInfo.source);
-      var targetDataObject = findObjectByDomElement(tableData, jsPlumbConnectionInfo.target);
+      var sourceDataObject = findObjectByDomElement(tableData, jsPlumbConnectionInfo.source, "fields");
+      var targetDataObject = findObjectByDomElement(tableData, jsPlumbConnectionInfo.target, "fields");
       
       requestMapping(sourceDataObject, targetDataObject, "fields");
    };
@@ -153,8 +163,12 @@ var tableManager =  function(){
     *  - applies proper drag/drop behavior
     *  
     */
-   var addTables = function (tablesToAdd) {
+   var addTables = function (tablesToAdd, autoLayout) {
       var dbCanvas = $('.dbCanvas');
+      // If we need to auto-layout these new tables,
+      // set the starting x and y position
+      var autoLayoutX = 0;
+      var autoLayoutY = 15;
       
       // Iterate over the tables to be added
       $(tablesToAdd).each(function(index) {
@@ -193,7 +207,7 @@ var tableManager =  function(){
             // When the user changes the table name in the popup, we need to push
             // that change back into the model
             .on('save', function(e, params) {
-               var tableObjectToUpdate = findObjectByDomElement(tableData,newTable);
+               var tableObjectToUpdate = findObjectByDomElement(tableData,newTable, "fields");
                var newValue = params.newValue;
                tableObjectToUpdate.title = newValue;
                console.debug(tableObjectToUpdate);
@@ -230,6 +244,7 @@ var tableManager =  function(){
             },
             stop: function(event, ui) {
                 is_dragging = false;
+                jsPlumb.recalculateOffsets(newTable);
                 jsPlumb.repaintEverything();
             }
           });
@@ -241,8 +256,8 @@ var tableManager =  function(){
           });
          
          // Render the fields for this table
-         if (this.children && this.children.length) {
-            $(this.children).each(function(index){
+         if (this.fields && this.fields.length) {
+            $(this.fields).each(function(index){
                addFieldToTable(tableObject, this);
             });
          }
@@ -251,8 +266,12 @@ var tableManager =  function(){
          // If the table has stored position info,
          // move the table to that position within
          // the dbCanvas
-         newTable.css("left", this.x);
-         newTable.css("top", this.y);
+         if (this.x || this.y) {
+            newTable.css("left", this.x);
+            newTable.css("top", this.y);   
+         }
+         
+         
          newTable.append(tableHeader);
          newTable.append(tableFields);
          
@@ -289,12 +308,58 @@ var tableManager =  function(){
          
          // Append the table to the table canvas
          dbCanvas.append(newTable);
-         //dbCanvas.text(this.title);
+         
+         // If autoLayout is true, we also need to automatically position
+         // these tables, so they don't all get placed on top of each other
+         // (such as when we import table schemas from a db and there's no
+         // x/y set)
+         if (autoLayout) {
+            var myWidth = newTable.width();
+            var myHeight = newTable.height();
+            var horizontalSpace = dbCanvas.width() - autoLayoutX;
+            var verticalSpace   = dbCanvas.height() - autoLayoutY;
+            // console.log("Width of this table: " + newTable.width());
+            // console.log("Remaining hor space: " + horizontalSpace);
+            
+            // If there's enough horizontal space left in this row for the table,
+            // then display it in this "row" 
+            if ( (horizontalSpace - myWidth - (defaults["auto_table_spacing_horizontal"]*2) ) > 0) {
+               autoLayoutX += defaults["auto_table_spacing_horizontal"];
+               newTable.css("left", autoLayoutX);
+               newTable.css("top", autoLayoutY);
+               autoLayoutX += myWidth;
+               autoLayoutLowestPoint = Math.max(autoLayoutY, autoLayoutY + myHeight);
+            }
+            // The table didn't fit horizontally, so move it down 
+            else {
+               autoLayoutY = autoLayoutLowestPoint;  // move down to the next row
+               autoLayoutY += 15; // Add the default vertical spacing
+               autoLayoutX = defaults["auto_table_spacing_horizontal"];  // move back to the left edge
+               // place the table
+               newTable.css("left", autoLayoutX);           
+               newTable.css("top", autoLayoutY);
+               // Update the pointers for the next table
+               autoLayoutX += myWidth;
+               autoLayoutLowestPoint = Math.max(autoLayoutY, autoLayoutY + myHeight);
+            }
+            
+            // Position the new table
+            
+            
+            
+         }
+         
+         
       });
       
       $('.menu').dropit();
       
    };
+   /**
+    * Given a table and field data object, create the dom element
+    * and wire it up to events.
+    * 
+    */
    
    var addFieldToTable = function (tableObj, fieldObj) {
       // Create the field
@@ -322,7 +387,7 @@ var tableManager =  function(){
       // When the user updates the table name in the popup, we need to push
       // that change back into the model
       .on('save', function(e, params) {
-         var fieldObjectToUpdate = findObjectByDomElement(tableData,newField);
+         var fieldObjectToUpdate = findObjectByDomElement(tableData,newField, "fields");
          var newValue = params.newValue;
          fieldObjectToUpdate.title = newValue;
       })
@@ -334,8 +399,18 @@ var tableManager =  function(){
       // Add this title to the field display
       .appendTo(newField);
       
+      titleString = ' <span style="font-style: italic;">(';
+      // Display the data type of the field
+      if (fieldObj.data_type) {
+    	  titleString += getPrettyDataType(fieldObj.data_type);
+      }
+      // If this field is a primary key, show "PK" next to field name
+      if (fieldObj.primary_key) {
+    	  titleString += ", PK";
+      }
+      titleString += ")</span>";
       
-      
+      fieldTitle.append(titleString);
       // Add left/right gutters to act as the drag source/target
       // for users when adding relationships between fields.
       var leftGutter = $('<div>', {
@@ -379,55 +454,21 @@ var tableManager =  function(){
       //  Link the domElement for this field to its
       //  entry in tableData, so later we can look up an item
       //  using its dom element.
-      findObjectById(tableData, fieldObj.node_id)['domElement'] = newField;
+      findObjectById(tableData, fieldObj.node_id, "fields")['domElement'] = newField;
       tableObj.fieldContainer.append(newField);
       
       
-      /*
-      newField.draggable();
-      // Each table can have fields dropped on in
-      newField.droppable({
-         accept: ".nodeType_tableField",
-         hoverClass: "allowedDrop",
-         drop: function(e,ui){
-            // find the objects to be linked together
-            var dragSource = findObjectByDomElement(tableData,ui.helper);
-            var dragTargetElement = e.target;
-            var dragTarget = findObjectByDomElement(tableData, dragTargetElement);
-            
-            // Find the parents of source/target, to determine drop eligibility
-            var dragSourceParentObject = findParentObject(tableData, dragSource);
-            var dragTargetParentObject = findParentObject(tableData, dragTarget);
-            $(ui.helper)
-               .draggable({revert:true});
-               
-            // Revert the drop
-            if (dragSource.nodeType == "tableField" && 
-                dragSourceParentObject.title != dragTargetParentObject.title
-                ) {
-               console.log('accepted this drop');
-               // When the 'revert' animation completes, request
-               // the new mapping
-               setTimeout(function () {
-                    ui.helper.promise().done(function () {
-                        //ui.helper.effect('shake', {}, 500);
-                        requestMapping(dragSource, dragTarget, "fields");
-                    });
-                }, 100);
-               
-               
-            }
-            else {
-               console.log('rejected this drop');
-            }
-            
-            
-         }
-         
-      });
-      */
-      //jsPlumb.addEndpoint($("#dbField_" + fieldObj.title), endpointDefault, { isSource:true, anchor:"RightMiddle", paintStyle:{fillStyle:"green"}});
    };
+   
+   var getPrettyDataType = function(originalDataType) {
+	   for (var idx = 0; idx < prettyDataTypes.length; idx++) {
+		   var pdt = prettyDataTypes[idx];
+		   if (pdt.from.valueOf() == originalDataType) {
+			   return pdt.to;
+		   }
+	   }
+	   return originalDataType;
+   }
    
    /** 
     *  User has clicked the "Add Field" button
@@ -472,12 +513,12 @@ var tableManager =  function(){
        // If the user provided one or more fieldnames
        if (newFieldName.val()) {
           var fieldNames = newFieldName.val().split(',');
-          var tableObject = findObjectByDomElement(tableData, lastTableSelected);
+          var tableObject = findObjectByDomElement(tableData, lastTableSelected, "fields");
           
           if (fieldNames.length == 1) {
              // Look up the table's data object by its dom element
              var newFieldObject = {node_id: tempRecordId, title: newFieldName.val().trim(), nodeType: "tableField"};
-             tableObject.children.push(newFieldObject);
+             tableObject.fields.push(newFieldObject);
              tempRecordId += 1;
              addFieldToTable(tableObject, newFieldObject, $(lastTableSelected).find('.slaveBody'));
              
@@ -486,7 +527,7 @@ var tableManager =  function(){
           else if (fieldNames.length > 1 ) {
              $.each(fieldNames, function(fieldNameIdx, fieldName) {
                 var newFieldObject = {node_id: tempRecordId, title: fieldName.trim(), nodeType: "tableField"};
-                tableObject.children.push(newFieldObject);
+                tableObject.fields.push(newFieldObject);
                 tempRecordId += 1;
                 addFieldToTable(tableObject, newFieldObject);
              });
@@ -511,7 +552,7 @@ var tableManager =  function(){
    
    var openDeleteTableDialog = function(event) {
        lastTableSelected = event.data.table;
-       var matchingDataObject = findObjectByDomElement(tableData,lastTableSelected);
+       var matchingDataObject = findObjectByDomElement(tableData,lastTableSelected,"fields");
        // Open the "add field" dialog at the mouse's current location
        $( "#frmDeleteTable" )
          //.dialog('option','position',{my: "left top", at: "left top", of: event.target})
@@ -539,14 +580,14 @@ var tableManager =  function(){
    var deleteTable = function() {
       
       // Todo: delete all the fields from this table
-      var tableToDelete = findObjectByDomElement(tableData, lastTableSelected);
+      var tableToDelete = findObjectByDomElement(tableData, lastTableSelected, "fields");
       
       // Delete all the fields from this table
       // Note:  using $.each here won't work, since we're deleting array elements
       //        which confuses $.each.  So keep the while loop, even though 
       //        it's unusual.
-      while( tableToDelete.children.length > 0) {
-         deleteField(tableToDelete.children[0]);
+      while( tableToDelete.fields.length > 0) {
+         deleteField(tableToDelete.fields[0]);
       }
       // Todo: delete the data object for this table
       $.each(tableData, function(lTableIdx, lTable) {
@@ -662,7 +703,7 @@ var tableManager =  function(){
    
    var deleteFieldByDomEl = function(fieldDomEl) {
       
-      var fieldObject = findObjectByDomElement(tableData, fieldDomEl); 
+      var fieldObject = findObjectByDomElement(tableData, fieldDomEl, "fields"); 
       deleteField(fieldObject);
       
    };
@@ -696,10 +737,10 @@ var tableManager =  function(){
        // Find the "parent table" this field belongs to
        $.each(tableData,function(srchTableIdx, srchTable) {
           var tbl = tableData[srchTableIdx];
-          $.each(tbl.children,function(srchFieldIdx, srchField) {
-             var thisFld = tbl.children[srchFieldIdx];
+          $.each(tbl.fields,function(srchFieldIdx, srchField) {
+             var thisFld = tbl.fields[srchFieldIdx];
              if (thisFld == field) {
-                tbl.children.splice(srchFieldIdx,1);
+                tbl.fields.splice(srchFieldIdx,1);
                 return false;
              }
           });
@@ -715,11 +756,13 @@ var tableManager =  function(){
     *  Recursively search a JSON array by id for an element. 
     */
    
-   var findObjectById = function(coll, id) {
+   var findObjectById = function(coll, id, propertyToTraverse) {
       var result = null;
+      var prop = propertyToTraverse || "children";
       //console.log('collection.length: ' + coll.length);
       for (var idx = 0; idx < coll.length; idx++) {
          //console.log('looking for match: ', id, coll[idx].id);  
+         
          var el = coll[idx];
          var elId = coll[idx].node_id;
          if (elId == id) {
@@ -728,9 +771,9 @@ var tableManager =  function(){
          }
          
          // Search children
-         if (el.children && el.children.length > 0) {
+         if (el[prop] && el[prop].length > 0) {
             var itemInChildren=false;
-            itemInChildren = findObjectById(el.children, id);
+            itemInChildren = findObjectById(el[prop], id, prop);
             if (itemInChildren) {
                return itemInChildren;
             }
@@ -740,8 +783,9 @@ var tableManager =  function(){
       return result; 
    };
    
-   var findObjectByDomElement = function(coll, domElement) {
+   var findObjectByDomElement = function(coll, domElement, propertyToTraverse) {
       var result = null;
+      var prop = propertyToTraverse || "children";
       // if domElement is a jQuery object, extract the bare
       // dom element from inside that jQuery object
       var requestedDomElement = domElement;
@@ -753,6 +797,7 @@ var tableManager =  function(){
       var targetDomElement;
       for (var idx = 0; idx < coll.length; idx++) {
          var currentObject = coll[idx];
+         console.debug(currentObject);
          targetDomElement = currentObject.domElement.get(0);
          
          if (targetDomElement == requestedDomElement) {
@@ -760,9 +805,9 @@ var tableManager =  function(){
          }
          
          // Search children
-         if (currentObject.children && currentObject.children.length > 0) {
+         if (currentObject[prop] && currentObject[prop].length > 0) {
             var itemInChildren=false;
-            itemInChildren = findObjectByDomElement(currentObject.children, domElement);
+            itemInChildren = findObjectByDomElement(currentObject[prop], domElement, prop);
             if (itemInChildren != null) {
                return itemInChildren;
             }
@@ -786,6 +831,24 @@ var tableManager =  function(){
          });
       });
       return matchedItem;
+   };
+   
+   /**
+    * Receives the definitions of a set of db relationships,
+    * and draws them on the screen.
+    */
+   
+   var requestMappingsByNodeId = function(relationships) {
+      // Loop over each relationship we got from the server
+      $.each(relationships, function(idx, relationship) {
+         var rel = relationships[idx];
+         var sourceDomEl = findObjectById(tableData, rel["source_node_id"], "fields");
+         var targetDomEl = findObjectById(tableData, rel["target_node_id"], "fields");
+         console.debug(sourceDomEl);
+         // Tell jsPlumb to connect these fields
+         //jsPlumb.connect({ source:sourceDomEl.domElement, target:targetDomEl.domElement });
+         
+      });
    };
    
    /**
@@ -819,8 +882,8 @@ var tableManager =  function(){
       // If the bare dom objects were passed in, replace them with the
       // actual data element for source/target
       if (mappingSourceObject && mappingSourceObject.nodeType) {  // this is a bare dom element
-         mappingSourceObject = findObjectByDomElement(tableData, mappingSourceObject);
-         mappingTargetObject = findObjectByDomElement(tableData, mappingTargetObject);
+         mappingSourceObject = findObjectByDomElement(tableData, mappingSourceObject, "fields");
+         mappingTargetObject = findObjectByDomElement(tableData, mappingTargetObject, "fields");
       }
       // Find the mapping with this source and target, and delete it
       $.each(mappingData, function(mappingIdx, mappingItem) {
@@ -853,7 +916,9 @@ var tableManager =  function(){
    
    
    return {
-      init: init    
+      init: init,
+      addTables: addTables,
+      requestMappingsByNodeId: requestMappingsByNodeId,
    };
 
    

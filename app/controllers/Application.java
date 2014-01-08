@@ -1,11 +1,11 @@
 package controllers;
 
 import java.util.*;
-import javax.persistence.*;
-import play.*;
 import play.mvc.*;
 import play.libs.Json;
+
 import org.codehaus.jackson.node.ObjectNode;
+
 
 import com.avaje.ebean.Ebean;
 
@@ -33,7 +33,7 @@ public class Application extends Controller {
     		List<Mapping> matches = Mapping.find.where()
     				.eq("id", mappingNodeId)
     				.findList();
-    		Logger.debug(String.valueOf(matches.size()));
+    		//Logger.debug(String.valueOf(matches.size()));
     	    // If we found a matching mappind document, return it
     		if (matches.size() > 0) {
     	    	result.put("data", Json.toJson(matches));
@@ -43,7 +43,7 @@ public class Application extends Controller {
     		}
     	}
     	else if (mappingNodeId == null) {
-    		Logger.debug("Returning all mappings");
+    		//Logger.debug("Returning all mappings");
     	}
     	return ok(result);
     }
@@ -62,4 +62,26 @@ public class Application extends Controller {
     	}
     	return ok(result);
     }
+    
+    /**
+     * Returns the tables/fields for a given database,
+     * so the user can import an existing database into
+     * the UI.
+     * @param database_name
+     * @return JSON representation of database schema 
+     */
+    public static Result getSchema(String database_name) {
+    	// Create the object to be returned
+    	ObjectNode result = Json.newObject();
+    	// Look up tables, fields and relationships for this database
+    	result = SchemaImporter.getSchema(database_name, result);
+    	// Return the table schema info as json to the browser
+    	return ok(result);
+    }
+    
+    
+    
+    
+    
+    
 }

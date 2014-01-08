@@ -13,5 +13,11 @@ GET     /mappings/get           controllers.Application.get_mappings()
 GET     /load_mapping           controllers.Application.loadMapping(id:Long)
 GET     /delete_mapping         controllers.Application.deleteMapping(id:Long)
 
+<<<<<<< HEAD
 # Test services
 POST	/test/edi-to-xml        controllers.CodePlayground.convertEdiToXmlString()
+=======
+# Schema inspection
+GET     /schema/get             controllers.Application.getSchema(database_name:String)
+GET     /schema/generateSampleData controllers.SchemaImporter.createSampleDatabase(database_name:String)
+>>>>>>> db_schema_import

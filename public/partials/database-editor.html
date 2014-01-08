@@ -27,7 +27,15 @@
        </div><!-- end main row -->
       
       
-      
+      <div class="row">
+         <div class="col-lg-12">
+            <button type="button" class="btn btn-small btn-primary ng-scope" 
+                bs-modal="'assets/partials/db-import-wizard.html'" 
+                data-toggle="modal">Import DB Schema...</button>
+            <button type="button" class="btn btn-small  ng-scope" 
+                ng-click="test()">Rebuild Dummy Client DB</button>
+         </div>
+      </div>
        
        <div class="row">
           <div class="col-lg-12">
@@ -81,14 +89,14 @@
                <a href="#"><img src="../assets/images/dropdown_caret.png" width="14"></img></a>
                <ul>
                   <li>
-                     <a href="#" class="table_add_field_command">Add Field</a>
+                     <a  class="table_add_field_command">Add Field</a>
                   </li>
                   <li>
-                     <a href="#" class="table_delete_field_command">Delete Field</a>
+                     <a class="table_delete_field_command">Delete Field</a>
                   </li>
                   <li class="dropdown-divider"></li>
                   <li>
-                     <a href="#" class="table_delete_table_command">Delete Table</a>
+                     <a  class="table_delete_table_command">Delete Table</a>
                   </li>
                </ul>
             </li>
@@ -124,7 +132,7 @@
          font-weight: normal ;
          min-height: 50px ;
          position: absolute;
-         width: 13em;
+         width: auto;
       }
       
       /**
@@ -142,6 +150,7 @@
          .dbRenderer .dbControls {
             float: right;
             margin-right: 7px;
+            margin-left: 8px;
          }
          
          #frmAddField {
@@ -255,6 +264,7 @@
       
       .fieldTitle {
          display: inline;
+         padding-right: 8px;
       }
       
       /*  Override the x-editable style that highlights
